@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=5.0, user-scalable=yes">
+  <title>Portal OSIS</title>
+  <style>
+    :root { color-scheme: light; --bg:#f4f6f9; --panel:#fff; --text:#182230; --muted:#667085; --line:#e4e7ec; --accent:#175cd3; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Arial, sans-serif; background:var(--bg); color:var(--text); }
+    .hidden { display:none !important; }
+    
+    .topbar { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 16px; background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:3; }
+    .brand { font-weight:700; font-size: 15px; }
+    .userline { color:var(--muted); font-size:11px; margin-top:2px; }
+    
+    main { padding:12px; max-width: 1200px; margin: 0 auto; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin:10px 0 10px; }
+    .toolbar .muted { flex:1; min-width:160px; font-size: 12px; }
+    
+    button { cursor:pointer; border:0; border-radius:6px; padding:8px 12px; background:var(--accent); color:#fff; font-weight:600; font-size: 12px;}
+    button:disabled { opacity:.55; cursor:wait; }
+    .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--text); }
+    .btn-outline:hover { background: #f9fafb; }
+    
+    .table-wrap { background:#fff; border:1px solid var(--line); border-radius:10px; overflow:auto; max-height:calc(100vh - 140px); }
+    table { border-collapse:collapse; width:100%; min-width:450px; font-size:11px; }
+    th, td { border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+    th { background:#f9fafb; position:sticky; top:0; z-index:1; white-space:nowrap; }
+    td input { min-width:75px; border:1px solid transparent; border-radius:4px; padding:5px; font:inherit; font-size:11px;}
+    td input:focus { border-color:var(--accent); outline:2px solid #d1e0ff; }
+    td.readonly { white-space:pre-wrap; min-width:60px; }
+    .status { min-height:20px; font-size:12px; color:var(--muted); margin-top: 8px; }
+    .empty { padding:20px; color:var(--muted); text-align: center; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 10; padding: 16px;}
+    .login-card { width:min(100%,320px); background:var(--panel); padding:20px; border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,0.2); }
+    .login-card h2 { margin: 0 0 8px; font-size: 16px; }
+    label { display:block; margin:12px 0 4px; font-size:12px; font-weight:600; }
+    input.inp-login { width:100%; padding:8px; border:1px solid #cfd4dc; border-radius:6px; background:#fff; color:#182230; font:inherit;}
+    .full { width:100%; margin-top:14px; }
+    .error { color:#b42318; font-size:12px; margin-top:10px; }
+    .close-btn { background: transparent; color: var(--muted); padding: 0; margin-bottom: 10px; text-decoration: underline; font-weight: normal; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div>
+      <div id="brandTitle" class="brand">Portal OSIS</div>
+      <div id="userLine" class="userline">Akses Anggota (Hanya Lihat)</div>
+    </div>
+    <button id="authButton" class="btn-outline">Login Pengurus</button>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <div id="editHint" class="muted">Memuat data...</div>
+      <button id="reloadButton" class="btn-outline">Muat ulang data</button>
+    </div>
+    <div id="tableWrap" class="table-wrap"><div class="empty">Memuat...</div></div>
+    <div id="pageStatus" class="status"></div>
+  </main>
+
+  <section id="loginModal" class="modal-overlay hidden">
+    <div class="login-card">
+      <button id="closeLoginBtn" class="close-btn">Batal</button>
+      <h2>Login Pengurus Inti</h2>
+      <div class="muted" style="font-size:12px;">Login diperlukan untuk mengedit data ini.</div>
+      <form id="loginForm">
+        <label for="idCard">ID Card</label>
+        <input id="idCard" class="inp-login" autocomplete="username" required>
+        <label for="pin">PIN</label>
+        <input id="pin" class="inp-login" type="password" inputmode="numeric" autocomplete="current-password" required>
+        <button id="loginButton" class="full" type="submit">Masuk & Edit Data</button>
+        <div id="loginError" class="error"></div>
+      </form>
+    </div>
+  </section>
+
+<script>
+  // GANTI URL DI BAWAH INI DENGAN URL EXEC WEB APP GAS ANDA
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzLOGNYrQFMm_DWfumPS-12gbLhwS5RWOAeDFqi5uEGpJf59_Gfmd1mNsENNoBtqfzw/exec";
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const CURRENT_SHEET = urlParams.get('sheet') || 'DASHBOARD'; 
+  let sessionToken = '';
+  
+  const $ = id => document.getElementById(id);
+
+  // Fungsi jembatan pengirim data ke GAS
+  async function apiCall(action, payload = {}) {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: action, payload: payload })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.message || 'Terjadi kesalahan server.');
+    return json.data;
+  }
+
+  window.onload = () => {
+    $('brandTitle').textContent = 'OSIS - ' + CURRENT_SHEET;
+    loadSheetData();
+  };
+
+  $('authButton').onclick = () => {
+    if (sessionToken) {
+      apiCall('logout', { token: sessionToken });
+      sessionToken = '';
+      $('userLine').textContent = 'Akses Anggota (Hanya Lihat)';
+      $('authButton').textContent = 'Login Pengurus';
+      loadSheetData();
+    } else {
+      $('loginModal').classList.remove('hidden');
+    }
+  };
+
+  $('closeLoginBtn').onclick = (e) => {
+    e.preventDefault();
+    $('loginModal').classList.add('hidden');
+    $('loginError').textContent = '';
+  };
+
+  $('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    $('loginButton').disabled = true;
+    $('loginError').textContent = 'Memeriksa akses...';
+    
+    try {
+      const result = await apiCall('login', { idCard: $('idCard').value, pin: $('pin').value });
+      if (result.role === 'PENGURUS_INTI') {
+        sessionToken = result.token;
+        $('pin').value = '';
+        $('loginModal').classList.add('hidden');
+        $('loginButton').disabled = false;
+        $('loginError').textContent = '';
+        
+        $('userLine').textContent = result.displayName + ' (Mode Edit Aktif)';
+        $('authButton').textContent = 'Keluar / Akhiri Edit';
+        
+        loadSheetData();
+      } else {
+        $('loginError').textContent = 'Akses ditolak. Fitur edit hanya untuk pengurus inti.';
+        $('loginButton').disabled = false;
+      }
+    } catch(err) {
+      $('loginError').textContent = err.message || 'Login gagal.';
+      $('loginButton').disabled = false;
+    }
+  });
+
+  $('reloadButton').onclick = () => loadSheetData();
+
+  async function loadSheetData() {
+    $('editHint').textContent = 'Memuat data dari spreadsheet...';
+    $('pageStatus').textContent = '';
+    $('tableWrap').innerHTML = '<div class="empty">Memuat...</div>';
+
+    try {
+      const data = await apiCall('getSheetData', { token: sessionToken, logicalName: CURRENT_SHEET });
+      $('editHint').textContent = data.editable
+        ? 'Mode Edit: Ubah teks pada kolom, lalu klik Simpan pada baris tersebut.'
+        : 'Mode Baca: Anda tidak memiliki akses untuk mengedit data ini.';
+      renderTable(data);
+    } catch(err) {
+      $('tableWrap').innerHTML = '<div class="empty">Tidak dapat memuat data.</div>';
+      $('pageStatus').textContent = err.message || 'Terjadi kesalahan.';
+    }
+  }
+
+  function renderTable(data) {
+    const wrap = $('tableWrap');
+    if (!data.headers || !data.headers.length) {
+      wrap.innerHTML = '<div class="empty">Sheet kosong atau belum memiliki data.</div>';
+      return;
+    }
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    data.headers.forEach((h, i) => {
+      const th = document.createElement('th');
+      th.textContent = h || ('Kolom ' + (i + 1));
+      trh.appendChild(th);
+    });
+    
+    if (data.editable) {
+      const th = document.createElement('th');
+      th.textContent = 'Aksi';
+      trh.appendChild(th);
+    }
+    thead.appendChild(trh);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    data.rows.forEach(row => {
+      const tr = document.createElement('tr');
+      row.values.forEach((value, i) => {
+        const td = document.createElement('td');
+        const isFormula = row.formulaCols.includes(i);
+        
+        if (data.editable && !isFormula) {
+          const input = document.createElement('input');
+          input.value = value == null ? '' : value;
+          input.dataset.col = String(i + 1);
+          input.dataset.original = input.value;
+          td.appendChild(input);
+        } else {
+          td.className = 'readonly';
+          td.textContent = value == null ? '' : value;
+        }
+        tr.appendChild(td);
+      });
+
+      if (data.editable) {
+        const td = document.createElement('td');
+        const save = document.createElement('button');
+        save.textContent = 'Simpan';
+        save.onclick = () => saveRowChanges(row.rowNumber, tr, save);
+        td.appendChild(save);
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.replaceChildren(table);
+  }
+
+  async function saveRowChanges(rowNumber, tr, saveButton) {
+    const inputs = Array.from(tr.querySelectorAll('input[data-col]'));
+    const changed = inputs.filter(input => input.value !== input.dataset.original);
+    if (!changed.length) {
+      $('pageStatus').textContent = 'Tidak ada sel yang diubah pada baris tersebut.';
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = 'Menyimpan...';
+    $('pageStatus').textContent = 'Menyimpan perubahan...';
+
+    try {
+      for (const input of changed) {
+        await apiCall('updateCell', {
+          token: sessionToken,
+          logicalName: CURRENT_SHEET,
+          rowNumber: rowNumber,
+          colNumber: Number(input.dataset.col),
+          newValue: input.value
+        });
+        input.dataset.original = input.value;
+      }
+      $('pageStatus').textContent = 'Perubahan tersimpan.';
+    } catch(err) {
+      $('pageStatus').textContent = 'Gagal menyimpan: ' + (err.message || 'Kesalahan server.');
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = 'Simpan';
+    }
+  }
+</script>
+</body>
+  </html>
+  
