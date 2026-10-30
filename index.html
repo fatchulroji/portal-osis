@@ -49,6 +49,17 @@
 .sheet-ACARA th:nth-child(5), .sheet-ACARA td:nth-child(5) { width: 50px; text-align: center; }
 .sheet-ACARA th:nth-child(6), .sheet-ACARA td:nth-child(6) { width: 50px; text-align: center; }
 .sheet-ACARA th:nth-child(7), .sheet-ACARA td:nth-child(7) { width: 50px; text-align: center; }
+
+/* Contoh jika ingin menambah aturan khusus sheet REKAP */
+.sheet-REKAP th:nth-child(1), .sheet-REKAP td:nth-child(1) { width: 90px; }
+.sheet-REKAP th:nth-child(2), .sheet-REKAP td:nth-child(2) { min-width: 200px; }
+.sheet-REKAP th:nth-child(n+3), .sheet-REKAP td:nth-child(-n+34) { width: 20px; }
+
+/* Warna Header untuk SEMUA Sheet */
+th {
+  background-color: #175cd3 !important; /* Warna Latar/Cell (Contoh: Biru Utama) */
+  color: #ffffff !important;            /* Warna Teks Header (Contoh: Putih) */
+}
   </style>
 </head>
 <body>
