@@ -41,6 +41,14 @@
     .full { width:100%; margin-top:14px; }
     .error { color:#b42318; font-size:12px; margin-top:10px; }
     .close-btn { background: transparent; color: var(--muted); padding: 0; margin-bottom: 10px; text-decoration: underline; font-weight: normal; }
+/* Aturan ini HANYA berlaku untuk sheet ACARA */
+.sheet-ACARA th:nth-child(1), .sheet-ACARA td:nth-child(1) { width: 45px; text-align: center; }
+.sheet-ACARA th:nth-child(2), .sheet-ACARA td:nth-child(2) { width: 70px; }
+.sheet-ACARA th:nth-child(3), .sheet-ACARA td:nth-child(3) { min-width: 180px; }
+.sheet-ACARA th:nth-child(4), .sheet-ACARA td:nth-child(4) { width: 50px; text-align: center; }
+.sheet-ACARA th:nth-child(5), .sheet-ACARA td:nth-child(5) { width: 50px; text-align: center; }
+.sheet-ACARA th:nth-child(6), .sheet-ACARA td:nth-child(6) { width: 50px; text-align: center; }
+.sheet-ACARA th:nth-child(7), .sheet-ACARA td:nth-child(7) { width: 50px; text-align: center; }
   </style>
 </head>
 <body>
@@ -177,6 +185,8 @@
     }
 
     const table = document.createElement('table');
+table.className = 'sheet-' + CURRENT_SHEET;
+
     const thead = document.createElement('thead');
     const trh = document.createElement('tr');
     data.headers.forEach((h, i) => {
