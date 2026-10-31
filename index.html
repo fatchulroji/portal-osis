@@ -60,6 +60,21 @@ th {
   background-color: #175cd3 !important; /* Warna Latar/Cell (Contoh: Biru Utama) */
   color: #ffffff !important;            /* Warna Teks Header (Contoh: Putih) */
 }
+/* Menyembunyikan Kolom 1 di sheet REKAP */
+.sheet-REKAP th:nth-child(1),
+.sheet-REKAP td:nth-child(1), {
+  display: none;
+}
+/* Menyembunyikan baris data ke-1 khusus di sheet REKAP */
+.sheet-REKAP tbody tr:nth-child(1) {
+  display: none;
+}
+/* Mengizinkan teks header turun baris agar kolom bisa mengecil */
+th {
+  white-space: normal !important; /* Mengizinkan teks melipat ke baris bawah */
+  word-break: break-word;         /* Memotong kata jika terlalu panjang */
+  vertical-align: middle;         /* Posisi teks rata tengah secara vertikal */
+}
   </style>
 </head>
 <body>
