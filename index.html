@@ -60,6 +60,19 @@ th {
   background-color: #175cd3 !important; /* Warna Latar/Cell (Contoh: Biru Utama) */
   color: #ffffff !important;            /* Warna Teks Header (Contoh: Putih) */
 }
+/* Aturan warna & format untuk Baris 1 dan Baris 2 di sheet REKAP */
+.sheet-REKAP tr:nth-child(1) th,
+.sheet-REKAP tr:nth-child(2) th,
+.sheet-REKAP tr:nth-child(1) td,
+.sheet-REKAP tr:nth-child(2) td {
+  background-color: #175cd3 !important; /* Warna latar header */
+  color: #ffffff !important;            /* Warna teks header */
+  font-weight: bold;                    /* Teks tebal */
+  white-space: normal !important;       /* Mengizinkan teks turun baris */
+  word-break: break-word;
+  vertical-align: middle;
+  text-align: center;
+}
 /* Menyembunyikan Kolom 1 di sheet REKAP */
 .sheet-REKAP th:nth-child(1),
 .sheet-REKAP td:nth-child(1), {
