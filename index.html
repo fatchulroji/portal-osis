@@ -2,492 +2,744 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Portal OSIS</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal OSIS</title>
 
-<style>
-* { box-sizing: border-box; }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f3f5f9;
-  color: #202938;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f5f9;
+      color: #202938;
+    }
 
-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #173b70;
-  color: white;
-  padding: 13px;
-  box-shadow: 0 2px 7px #0002;
-}
+    header {
+      background: #173b70;
+      color: white;
+      padding: 18px 20px;
+    }
 
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
+    .header-inner {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-h2 {
-  font-size: 17px;
-  margin: 0;
-}
+    header h1 {
+      margin: 0;
+      font-size: 21px;
+    }
 
-button {
-  border: 0;
-  border-radius: 7px;
-  padding: 10px 14px;
-  font-weight: bold;
-  cursor: pointer;
-}
+    header p {
+      margin: 5px 0 0;
+      font-size: 13px;
+      opacity: .85;
+    }
 
-#saveBtn {
-  background: #16a36a;
-  color: white;
-  display: none;
-}
+    button, select, input {
+      font: inherit;
+    }
 
-#saveBtn:disabled {
-  opacity: .5;
-}
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-#refreshBtn {
-  background: white;
-  color: #173b70;
-}
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
 
-.info {
-  font-size: 12px;
-  margin-top: 9px;
-  color: #dce8f8;
-}
+    #saveButton {
+      background: #16a36a;
+      color: white;
+      display: none;
+    }
 
-main {
-  padding: 12px;
-}
+    #reloadButton {
+      background: white;
+      color: #173b70;
+    }
 
-.status {
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 7px;
-  background: white;
-  font-size: 13px;
-}
+    main {
+      max-width: 1200px;
+      margin: 22px auto;
+      padding: 0 14px;
+    }
 
-.table-wrap {
-  width: 100%;
-  overflow: auto;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 5px #0001;
-  max-height: calc(100vh - 135px);
-}
+    .toolbar, .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
+      margin-bottom: 16px;
+    }
 
-table {
-  width: max-content;
-  min-width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-th, td {
-  border: 1px solid #cbd3df;
-  padding: 7px;
-  min-width: 90px;
-  max-width: 220px;
-  overflow-wrap: anywhere;
-  vertical-align: middle;
-}
+    label {
+      font-size: 14px;
+      font-weight: bold;
+    }
 
-th {
-  background: #e7edf7;
-  color: #173b70;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  white-space: normal;
-}
+    select {
+      min-width: 190px;
+      padding: 10px;
+      border: 1px solid #ccd3df;
+      border-radius: 8px;
+      background: white;
+    }
 
-td:first-child {
-  background: #f7f8fb;
-}
+    #sheetTitle {
+      margin: 0 0 6px;
+      font-size: 19px;
+    }
 
-td input {
-  width: 100%;
-  min-width: 65px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 5px;
-  font-size: 12px;
-  background: transparent;
-  color: inherit;
-}
+    #sheetInfo {
+      color: #657184;
+      font-size: 13px;
+    }
 
-td input:focus {
-  outline: 1px solid #2563eb;
-  background: #eff6ff;
-}
+    #status {
+      padding: 12px;
+      border-radius: 8px;
+      background: #edf2f8;
+      color: #43516a;
+      font-size: 14px;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+    }
 
-td.changed {
-  background: #fff4cf;
-}
+    #status.error {
+      background: #fff0f0;
+      color: #a32626;
+    }
 
-td.formula {
-  background: #edf0f4;
-  color: #697586;
-}
+    #status.success {
+      background: #eaf8f0;
+      color: #176b42;
+    }
 
-.empty {
-  padding: 25px;
-  text-align: center;
-  color: #777;
-}
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+      border: 1px solid #dce1e9;
+      border-radius: 9px;
+      max-height: 70vh;
+    }
 
-@media(max-width:600px) {
-  main { padding: 7px; }
-  header { padding: 10px; }
-  th, td {
-    padding: 6px;
-    min-width: 76px;
-    font-size: 11px;
-  }
-  h2 { font-size: 15px; }
-  button { padding: 9px 10px; font-size: 12px; }
-}
-</style>
+    table {
+      border-collapse: collapse;
+      width: max-content;
+      min-width: 100%;
+      background: white;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #dce1e9;
+      padding: 9px 10px;
+      min-width: 110px;
+      max-width: 320px;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+
+    th {
+      background: #eaf0f8;
+      color: #173b70;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      white-space: nowrap;
+    }
+
+    td.row-number {
+      min-width: 55px;
+      width: 55px;
+      background: #f5f7fa;
+      color: #657184;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    td.editable {
+      background: #fffdf2;
+      cursor: text;
+    }
+
+    td.editable:focus {
+      outline: 2px solid #3478d4;
+      outline-offset: -2px;
+      background: #fff;
+    }
+
+    td.formula {
+      background: #f0f1f3;
+      color: #727b89;
+      cursor: not-allowed;
+    }
+
+    td.changed {
+      background: #fff0c9;
+    }
+
+    .empty {
+      padding: 25px;
+      text-align: center;
+      color: #6d7788;
+    }
+
+    .footer-note {
+      color: #697589;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 18px;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .toolbar select,
+      .toolbar button {
+        width: 100%;
+      }
+
+      th, td {
+        min-width: 95px;
+        padding: 8px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
-  <div class="top">
-    <h2 id="title">PORTAL OSIS</h2>
+  <div class="header-inner">
+    <div>
+      <h1>Portal OSIS</h1>
+      <p>Sistem Informasi Organisasi Siswa Intra Sekolah</p>
+    </div>
 
-    <div style="display:flex;gap:6px">
-      <button id="refreshBtn" onclick="loadData()">
-        MUAT ULANG
+    <div>
+      <button id="saveButton" onclick="saveChanges()">
+        Simpan Perubahan
       </button>
-
-      <button id="saveBtn" onclick="saveChanges()">
-        SIMPAN
+      <button id="reloadButton" onclick="loadSheet()">
+        Muat Ulang
       </button>
     </div>
-  </div>
-
-  <div class="info" id="info">
-    Menghubungkan ke server...
   </div>
 </header>
 
 <main>
-  <div class="status" id="status">
-    Memuat data...
-  </div>
 
-  <div class="table-wrap">
-    <table id="dataTable"></table>
-  </div>
+  <section class="toolbar">
+    <label for="sheetSelect">Pilih Sheet:</label>
+
+    <select id="sheetSelect" onchange="changeSheet()">
+      <option value="DASHBOARD">DASHBOARD - Kehadiran</option>
+      <option value="ACARA">ACARA</option>
+      <option value="ABSEN">ABSEN</option>
+      <option value="Dashboard">Dashboard - Anggota</option>
+      <option value="Kalender">Kalender</option>
+      <option value="REKAP">REKAP - Kas</option>
+      <option value="PENGELUARAN">PENGELUARAN</option>
+    </select>
+  </section>
+
+  <section class="panel">
+    <h2 id="sheetTitle">Memuat portal...</h2>
+    <div id="sheetInfo">Menyiapkan data.</div>
+  </section>
+
+  <div id="status">Menghubungkan ke server...</div>
+
+  <section class="panel">
+    <div class="table-wrap">
+      <table id="dataTable">
+        <tbody>
+          <tr>
+            <td class="empty">Data sedang dimuat...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer-note">
+      Sel berwarna kuning muda dapat diedit jika akun memiliki izin.
+      Sel berwarna abu-abu berisi formula atau tidak dapat diedit.
+    </div>
+  </section>
+
 </main>
 
 <script>
-"use strict";
+  /* ================================================
+     KONFIGURASI
+     ================================================ */
 
-// ===================================
-// KONFIGURASI
-// ===================================
+  const API_URL = "GANTI_DENGAN_URL_WEB_APP";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzLOGNYrQFMm_DWfumPS-12gbLhwS5RWOAeDFqi5uEGpJf59_Gfmd1mNsENNoBtqfzw/exec";
+  const SHEET_NAMES = [
+    "DASHBOARD",
+    "ACARA",
+    "ABSEN",
+    "Dashboard",
+    "Kalender",
+    "REKAP",
+    "PENGELUARAN"
+  ];
 
-const params = new URLSearchParams(location.search);
-const logicalName = params.get("sheet") || "DASHBOARD";
+  const params = new URLSearchParams(location.search);
 
-// Token memakai URL fragment (#), bukan query string.
-// Fragment tidak dikirim ke server GitHub Pages.
-const hashParams = new URLSearchParams(
-  location.hash.replace(/^#/, "")
-);
+  let currentSheet =
+    params.get("sheet") || "DASHBOARD";
 
-const TOKEN = hashParams.get("token") || "";
-
-let sheetData = null;
-let pendingChanges = new Map();
-let loading = false;
-
-const $ = id => document.getElementById(id);
-
-const titles = {
-  DASHBOARD: "DASHBOARD KEHADIRAN",
-  ACARA: "DATA ACARA",
-  ABSEN: "DATA ABSENSI",
-  Dashboard: "DASHBOARD ANGGOTA",
-  Kalender: "KALENDER KEGIATAN",
-  REKAP: "REKAP KAS",
-  PENGELUARAN: "PENGELUARAN KAS"
-};
-
-$("title").textContent =
-  titles[logicalName] || "PORTAL OSIS";
-
-// ===================================
-// KOMUNIKASI API
-// ===================================
-
-async function apiRequest(action, payload) {
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
-    body: JSON.stringify({
-      action: action,
-      ...payload
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error("HTTP error " + response.status);
+  if (!SHEET_NAMES.includes(currentSheet)) {
+    currentSheet = "DASHBOARD";
   }
 
-  const result = await response.json();
+  // Token disimpan pada URL fragment, bukan query string.
+  // Fragment tidak dikirim sebagai bagian request HTTP ke GitHub.
+  const hashParams = new URLSearchParams(
+    location.hash.replace(/^#/, "")
+  );
 
-  if (result.success === false || result.ok === false) {
-    throw new Error(result.message || "Permintaan gagal.");
+  const TOKEN = hashParams.get("token") || "";
+
+  let currentData = null;
+  let pendingChanges = new Map();
+  let isLoading = false;
+  let isSaving = false;
+
+
+  /* ================================================
+     ELEMEN HTML
+     ================================================ */
+
+  const sheetSelect =
+    document.getElementById("sheetSelect");
+
+  const sheetTitle =
+    document.getElementById("sheetTitle");
+
+  const sheetInfo =
+    document.getElementById("sheetInfo");
+
+  const statusBox =
+    document.getElementById("status");
+
+  const dataTable =
+    document.getElementById("dataTable");
+
+  const saveButton =
+    document.getElementById("saveButton");
+
+
+  /* ================================================
+     FUNGSI STATUS
+     ================================================ */
+
+  function showStatus(message, type = "") {
+    statusBox.textContent = message;
+    statusBox.className = type;
   }
 
-  return result.data || result.result || result;
-}
 
-// ===================================
-// MEMUAT DATA
-// ===================================
+  /* ================================================
+     KOMUNIKASI API
+     ================================================ */
 
-async function loadData() {
-  if (loading) return;
-
-  loading = true;
-  $("status").textContent = "Mengambil data...";
-  $("refreshBtn").disabled = true;
-
-  try {
-    const result = await apiRequest("getSheetData", {
-      token: TOKEN,
-      logicalName: logicalName
+  async function apiRequest(payload) {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(payload)
     });
 
-    sheetData = result;
+    if (!response.ok) {
+      throw new Error(
+        "Server memberikan status HTTP " + response.status
+      );
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(
+        result.message || "Permintaan API gagal."
+      );
+    }
+
+    return result.data;
+  }
+
+
+  /* ================================================
+     GANTI SHEET
+     ================================================ */
+
+  function changeSheet() {
+    const nextSheet = sheetSelect.value;
+
+    if (
+      pendingChanges.size > 0 &&
+      !confirm(
+        "Ada perubahan yang belum disimpan. " +
+        "Pindah sheet dan membuang perubahan tersebut?"
+      )
+    ) {
+      sheetSelect.value = currentSheet;
+      return;
+    }
+
+    currentSheet = nextSheet;
     pendingChanges.clear();
 
-    renderTable();
+    const newUrl = new URL(location.href);
+    newUrl.searchParams.set("sheet", currentSheet);
 
-    $("status").textContent =
-      "Data berhasil dimuat. " +
-      result.rows.length + " baris data.";
+    history.replaceState(null, "", newUrl);
 
-    $("info").textContent =
-      result.editable
-        ? "Mode pengurus: dapat mengedit data."
-        : "Mode anggota: hanya dapat melihat data.";
+    loadSheet();
+  }
 
-    $("saveBtn").style.display =
-      result.editable ? "inline-block" : "none";
 
+  /* ================================================
+     MUAT DATA SHEET
+     ================================================ */
+
+  async function loadSheet() {
+    if (isLoading) return;
+
+    if (pendingChanges.size > 0) {
+      if (
+        !confirm(
+          "Perubahan belum disimpan. Muat ulang dan " +
+          "buang perubahan tersebut?"
+        )
+      ) {
+        return;
+      }
+    }
+
+    isLoading = true;
+    pendingChanges.clear();
     updateSaveButton();
 
-  } catch (error) {
-    $("status").textContent =
-      "Gagal memuat data: " + error.message;
+    sheetSelect.value = currentSheet;
 
-    $("info").textContent = "Koneksi API bermasalah.";
-    $("dataTable").innerHTML = "";
-    $("saveBtn").style.display = "none";
+    showStatus("Sedang mengambil data " + currentSheet + "...");
 
-  } finally {
-    loading = false;
-    $("refreshBtn").disabled = false;
+    dataTable.innerHTML =
+      '<tbody><tr><td class="empty">Memuat data...</td></tr></tbody>';
+
+    try {
+      const data = await apiRequest({
+        action: "getSheetData",
+        sheet: currentSheet,
+        token: TOKEN
+      });
+
+      currentData = data;
+
+      renderTable(data);
+
+      sheetTitle.textContent = data.name;
+
+      sheetInfo.textContent =
+        "Baris header: " + data.headerRow +
+        " | Total baris data: " + data.rows.length +
+        (data.editable ? " | Mode edit aktif" : " | Mode baca");
+
+      showStatus(
+        data.editable
+          ? "Data berhasil dimuat. Anda memiliki izin edit pada sheet ini."
+          : "Data berhasil dimuat dalam mode baca.",
+        "success"
+      );
+
+      updateSaveButton();
+
+    } catch (err) {
+      currentData = null;
+
+      showStatus(
+        "Gagal mengambil data: " + err.message,
+        "error"
+      );
+
+      dataTable.innerHTML =
+        '<tbody><tr><td class="empty">Data tidak dapat dimuat.</td></tr></tbody>';
+
+      sheetTitle.textContent = currentSheet;
+      sheetInfo.textContent = "Gagal memuat data.";
+
+    } finally {
+      isLoading = false;
+    }
   }
-}
 
-// ===================================
-// MENAMPILKAN TABEL
-// ===================================
 
-function renderTable() {
-  const table = $("dataTable");
+  /* ================================================
+     TAMPILKAN TABEL
+     ================================================ */
 
-  table.innerHTML = "";
+  function renderTable(data) {
+    dataTable.innerHTML = "";
 
-  if (!sheetData || !sheetData.headers.length) {
-    table.innerHTML =
-      '<tr><td class="empty">Tidak ada data.</td></tr>';
-    return;
-  }
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
 
-  const thead = document.createElement("thead");
-  const headRow = document.createElement("tr");
+    const numberHeader = document.createElement("th");
+    numberHeader.textContent = "Baris";
+    headerRow.appendChild(numberHeader);
 
-  sheetData.headers.forEach(header => {
-    const th = document.createElement("th");
-    th.textContent = header || "-";
-    headRow.appendChild(th);
-  });
+    data.headers.forEach(function(header) {
+      const th = document.createElement("th");
+      th.textContent = header || "(Tanpa judul)";
+      headerRow.appendChild(th);
+    });
 
-  thead.appendChild(headRow);
-  table.appendChild(thead);
+    thead.appendChild(headerRow);
+    dataTable.appendChild(thead);
 
-  const tbody = document.createElement("tbody");
+    const tbody = document.createElement("tbody");
 
-  sheetData.rows.forEach(row => {
-    const tr = document.createElement("tr");
-
-    row.values.forEach((value, index) => {
+    if (!data.rows.length) {
+      const tr = document.createElement("tr");
       const td = document.createElement("td");
 
-      const colNumber = index + 1;
-      const isFormula =
-        row.formulaCols.includes(colNumber);
+      td.colSpan = data.headers.length + 1;
+      td.className = "empty";
+      td.textContent = "Belum ada data.";
 
-      const canEdit =
-        sheetData.editable &&
-        !isFormula;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
 
-      if (canEdit) {
-        const input = document.createElement("input");
+      dataTable.appendChild(tbody);
+      return;
+    }
 
-        input.type = "text";
-        input.value = value == null ? "" : value;
+    data.rows.forEach(function(rowData) {
+      const tr = document.createElement("tr");
 
-        input.addEventListener("input", function() {
-          const original =
-            String(row.values[index] ?? "");
+      const rowNumber = document.createElement("td");
+      rowNumber.textContent = rowData.rowNumber;
+      rowNumber.className = "row-number";
+      tr.appendChild(rowNumber);
 
-          const current = input.value;
+      data.headers.forEach(function(header, index) {
+        const td = document.createElement("td");
 
-          const key =
-            row.rowNumber + ":" + colNumber;
+        const value =
+          rowData.values[index] == null
+            ? ""
+            : rowData.values[index];
 
-          if (current === original) {
-            pendingChanges.delete(key);
-            td.classList.remove("changed");
-          } else {
-            pendingChanges.set(key, {
-              rowNumber: row.rowNumber,
-              colNumber: colNumber,
-              value: current
-            });
+        td.textContent = value;
 
-            td.classList.add("changed");
-          }
-
-          updateSaveButton();
-        });
-
-        td.appendChild(input);
-
-      } else {
-        td.textContent = value == null ? "" : value;
+        const isFormula =
+          rowData.formulaCols.includes(index + 1);
 
         if (isFormula) {
           td.classList.add("formula");
-        }
-      }
+          td.title = "Sel formula tidak dapat diedit.";
 
-      tr.appendChild(td);
+        } else if (data.editable) {
+          td.classList.add("editable");
+          td.contentEditable = "true";
+          td.spellcheck = false;
+
+          td.dataset.row = rowData.rowNumber;
+          td.dataset.col = index + 1;
+          td.dataset.original = value;
+
+          td.addEventListener("input", handleCellEdit);
+        }
+
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
     });
 
-    tbody.appendChild(tr);
-  });
-
-  table.appendChild(tbody);
-}
-
-// ===================================
-// TOMBOL SIMPAN TUNGGAL
-// ===================================
-
-function updateSaveButton() {
-  const count = pendingChanges.size;
-
-  $("saveBtn").disabled = count === 0;
-
-  $("saveBtn").textContent =
-    count > 0
-      ? "SIMPAN (" + count + ")"
-      : "SIMPAN";
-}
-
-async function saveChanges() {
-  if (!sheetData || !sheetData.editable) {
-    alert("Anda tidak memiliki izin edit.");
-    return;
+    dataTable.appendChild(tbody);
   }
 
-  if (!TOKEN) {
-    alert("Token pengurus tidak ditemukan.");
-    return;
-  }
 
-  const changes = Array.from(
-    pendingChanges.values()
-  );
+  /* ================================================
+     CATAT PERUBAHAN SEL
+     ================================================ */
 
-  if (!changes.length) {
-    alert("Tidak ada perubahan.");
-    return;
-  }
+  function handleCellEdit(event) {
+    const cell = event.currentTarget;
 
-  const confirmation = confirm(
-    "Simpan " + changes.length +
-    " perubahan pada sheet " + logicalName + "?"
-  );
+    const row = Number(cell.dataset.row);
+    const col = Number(cell.dataset.col);
+    const original = cell.dataset.original;
+    const value = cell.textContent;
 
-  if (!confirmation) return;
+    const key = row + ":" + col;
 
-  $("saveBtn").disabled = true;
-  $("saveBtn").textContent = "MENYIMPAN...";
+    if (value === original) {
+      pendingChanges.delete(key);
+      cell.classList.remove("changed");
 
-  try {
-    const result = await apiRequest(
-      "saveSheetChanges",
-      {
-        token: TOKEN,
-        logicalName: logicalName,
-        changes: changes
-      }
-    );
+    } else {
+      pendingChanges.set(key, {
+        row: row,
+        col: col,
+        value: value
+      });
 
-    alert(
-      result.message ||
-      "Data berhasil disimpan."
-    );
-
-    await loadData();
-
-  } catch (error) {
-    alert(
-      "Gagal menyimpan: " + error.message
-    );
+      cell.classList.add("changed");
+    }
 
     updateSaveButton();
+
+    showStatus(
+      pendingChanges.size +
+      " sel berubah dan belum disimpan."
+    );
   }
-}
 
-// ===================================
-// AWAL APLIKASI
-// ===================================
 
-if (!titles[logicalName]) {
-  $("status").textContent = "Nama sheet tidak dikenal.";
-} else if (!API_URL.startsWith("https://")) {
-  $("status").textContent = "URL API belum dikonfigurasi.";
-} else {
-  loadData();
-}
+  /* ================================================
+     TOMBOL SIMPAN
+     ================================================ */
+
+  function updateSaveButton() {
+    const canSave =
+      Boolean(currentData) &&
+      currentData.editable === true &&
+      Boolean(TOKEN) &&
+      pendingChanges.size > 0 &&
+      !isSaving;
+
+    saveButton.style.display =
+      currentData && currentData.editable
+        ? "inline-block"
+        : "none";
+
+    saveButton.disabled = !canSave;
+
+    saveButton.textContent =
+      isSaving
+        ? "Menyimpan..."
+        : "Simpan Perubahan (" + pendingChanges.size + ")";
+  }
+
+
+  /* ================================================
+     SIMPAN SEMUA PERUBAHAN
+     ================================================ */
+
+  async function saveChanges() {
+    if (isSaving || pendingChanges.size === 0) {
+      return;
+    }
+
+    if (!TOKEN) {
+      showStatus(
+        "Token pengurus tidak ditemukan. Silakan login melalui aplikasi OSIS.",
+        "error"
+      );
+      return;
+    }
+
+    if (!confirm(
+      "Simpan " + pendingChanges.size +
+      " perubahan pada sheet " + currentSheet + "?"
+    )) {
+      return;
+    }
+
+    isSaving = true;
+    updateSaveButton();
+
+    const changes = Array.from(
+      pendingChanges.values()
+    );
+
+    showStatus("Sedang menyimpan perubahan...");
+
+    try {
+      const result = await apiRequest({
+        action: "saveSheetChanges",
+        token: TOKEN,
+        sheet: currentSheet,
+        changes: changes
+      });
+
+      pendingChanges.clear();
+
+      showStatus(
+        result.message ||
+        "Perubahan berhasil disimpan.",
+        "success"
+      );
+
+      // Muat ulang agar tampilan sesuai data server.
+      await loadSheet();
+
+    } catch (err) {
+      showStatus(
+        "Gagal menyimpan: " + err.message,
+        "error"
+      );
+
+    } finally {
+      isSaving = false;
+      updateSaveButton();
+    }
+  }
+
+
+  /* ================================================
+     MULAI PORTAL
+     ================================================ */
+
+  sheetSelect.value = currentSheet;
+
+  if (!TOKEN) {
+    showStatus(
+      "Mode pengunjung: Anda dapat membaca data publik. " +
+      "Login melalui aplikasi OSIS untuk memperoleh hak edit."
+    );
+  }
+
+  loadSheet();
 
 </script>
+
 </body>
 </html>
