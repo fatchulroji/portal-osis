@@ -507,58 +507,104 @@
   }
 
   /* ================================================
-     TAMPILKAN TABEL (TANPA KOLOM BARIS)
+     TAMPILKAN TABEL (WITH FILTER REKAP)
      ================================================ */
 
   function renderTable(data) {
     dataTable.innerHTML = "";
 
+    // --------------------------------------------------
+    // 1. ATURAN FILTER KHUSUS SHEET "REKAP"
+    // --------------------------------------------------
+    let validColIndexes = data.headers.map(function(_, i) { return i; });
+    let rowsToRender = data.rows;
+
+    if (currentSheet === "REKAP") {
+      
+      // A. SEMBUNYIKAN KOLOM
+      // Pilihan 1: Berdasarkan Nama Header (misal: "ID", "Keterangan Rahasia")
+      const hiddenHeaderNames = ["Catatan Internal"];
+
+      // Pilihan 2: Berdasarkan Urutan Kolom (0 = Kolom A, 1 = Kolom B, 2 = Kolom C, dst)
+      const hiddenColIndexes = [0]; // Contoh: Sembunyikan kolom pertama (Kolom A)
+
+      // Filter indeks kolom yang diizinkan tampil
+      validColIndexes = data.headers
+        .map(function(header, index) {
+          if (hiddenHeaderNames.includes(header) || hiddenColIndexes.includes(index)) {
+            return -1; // Tandai untuk disembunyikan
+          }
+          return index;
+        })
+        .filter(function(index) { return index !== -1; });
+
+
+      // B. SEMBUNYIKAN BARIS
+      // Pilihan 1: Sembunyikan berdasarkan nomor baris spreadsheet asli (rowNumber)
+      const hiddenRowNumbers = [1]; // Contoh: Sembunyikan baris ke-1
+
+      rowsToRender = data.rows.filter(function(rowData) {
+        // Sembunyikan jika nomor baris ada di daftar hiddenRowNumbers
+        if (hiddenRowNumbers.includes(rowData.rowNumber)) {
+          return false;
+        }
+
+        // Pilihan 2 (Opsional): Sembunyikan jika baris kosong / nilai kolom pertama null
+        // if (!rowData.values[0]) return false;
+
+        return true;
+      });
+    }
+
+    // --------------------------------------------------
+    // 2. RENDERING HEADER TABEL
+    // --------------------------------------------------
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
 
-    // Hanya membuat header sesuai data sheet
-    data.headers.forEach(function(header) {
+    validColIndexes.forEach(function(colIndex) {
       const th = document.createElement("th");
-      th.textContent = header || "(Tanpa judul)";
+      th.textContent = data.headers[colIndex] || "(Tanpa judul)";
       headerRow.appendChild(th);
     });
 
     thead.appendChild(headerRow);
     dataTable.appendChild(thead);
 
+    // --------------------------------------------------
+    // 3. RENDERING ISI BARIS & DATA
+    // --------------------------------------------------
     const tbody = document.createElement("tbody");
 
-    if (!data.rows.length) {
+    if (!rowsToRender.length) {
       const tr = document.createElement("tr");
       const td = document.createElement("td");
 
-      td.colSpan = data.headers.length;
+      td.colSpan = validColIndexes.length;
       td.className = "empty";
       td.textContent = "Belum ada data.";
 
       tr.appendChild(td);
       tbody.appendChild(tr);
-
       dataTable.appendChild(tbody);
       return;
     }
 
-    data.rows.forEach(function(rowData) {
+    rowsToRender.forEach(function(rowData) {
       const tr = document.createElement("tr");
 
-      // Langsung menampilkan isi sel data tanpa membuat td.row-number
-      data.headers.forEach(function(header, index) {
+      validColIndexes.forEach(function(colIndex) {
         const td = document.createElement("td");
 
         const value =
-          rowData.values[index] == null
+          rowData.values[colIndex] == null
             ? ""
-            : rowData.values[index];
+            : rowData.values[colIndex];
 
         td.textContent = value;
 
         const isFormula =
-          rowData.formulaCols.includes(index + 1);
+          rowData.formulaCols.includes(colIndex + 1);
 
         if (isFormula) {
           td.classList.add("formula");
@@ -570,7 +616,7 @@
           td.spellcheck = false;
 
           td.dataset.row = rowData.rowNumber;
-          td.dataset.col = index + 1;
+          td.dataset.col = colIndex + 1; // Menjaga koordinat kolom asli di Google Sheets
           td.dataset.original = value;
 
           td.addEventListener("input", handleCellEdit);
