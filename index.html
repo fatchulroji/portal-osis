@@ -685,6 +685,10 @@
         changes: changes
       });
 
+if (sheetName === "ACARA") {
+  syncAcaraSheetToCalendar();
+}
+
       pendingChanges.clear();
       showStatus(result.message || "Perubahan berhasil disimpan.", "success");
       await loadSheet();
