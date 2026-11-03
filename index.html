@@ -21,7 +21,7 @@
     header {
       background: #173b70;
       color: white;
-      padding: 18px 20px;
+      padding: 8px 12px;
     }
 
     .header-inner {
@@ -45,20 +45,25 @@
       opacity: .85;
     }
 
+    header p {
+     display: none;
+    }
+
     button, select, input {
       font: inherit;
     }
 
     button {
       border: 0;
-      border-radius: 8px;
-      padding: 11px 16px;
+      border-radius: 6px;
+      padding: 6px 10px;
       cursor: pointer;
       font-weight: bold;
+      font-size: 12px;
     }
 
     button:disabled {
-      opacity: .55;
+      opacity: .50;
       cursor: not-allowed;
     }
 
@@ -92,6 +97,10 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .toolbar, .panel {
+      display: none !important;
     }
 
     label {
