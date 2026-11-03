@@ -17,6 +17,7 @@
       color: #202938;
     }
 
+    /* HEADER RINGKAS */
     header {
       background: #173b70;
       color: white;
@@ -71,17 +72,18 @@
       color: #173b70;
     }
 
+    /* KELAS KHUSUS MENYEMBUNYIKAN ELEMEN TANPA MERUSAK SCRIPT */
     .hidden-element {
       display: none !important;
     }
 
     main {
       max-width: 1200px;
-      margin: 22px auto;
-      padding: 0 14px;
+      margin: 16px auto;
+      padding: 0 12px;
     }
 
-    .toolbar, .panel {
+    .panel {
       background: white;
       border-radius: 12px;
       padding: 16px;
@@ -89,43 +91,13 @@
       margin-bottom: 16px;
     }
 
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    label {
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    select {
-      min-width: 190px;
-      padding: 10px;
-      border: 1px solid #ccd3df;
-      border-radius: 8px;
-      background: white;
-    }
-
-    #sheetTitle {
-      margin: 0 0 6px;
-      font-size: 19px;
-    }
-
-    #sheetInfo {
-      color: #657184;
-      font-size: 13px;
-    }
-
     #status {
-      padding: 12px;
+      padding: 10px 12px;
       border-radius: 8px;
       background: #edf2f8;
       color: #43516a;
-      font-size: 14px;
-      margin-bottom: 14px;
+      font-size: 13px;
+      margin-bottom: 12px;
       white-space: pre-wrap;
     }
 
@@ -139,12 +111,13 @@
       color: #176b42;
     }
 
+    /* TABEL DATA */
     .table-wrap {
       width: 100%;
       overflow: auto;
       border: 1px solid #dce1e9;
       border-radius: 9px;
-      max-height: 70vh;
+      max-height: 75vh;
     }
 
     table {
@@ -158,10 +131,10 @@
     th, td {
       border: 1px solid #dce1e9;
       padding: 9px 10px;
-      min-width: 110px;
-      max-width: 320px;
+      min-width: 100px;
+      max-width: 350px;
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
       overflow-wrap: anywhere;
     }
 
@@ -172,15 +145,7 @@
       top: 0;
       z-index: 2;
       white-space: nowrap;
-    }
-
-    td.row-number {
-      min-width: 55px;
-      width: 55px;
-      background: #f5f7fa;
-      color: #657184;
       text-align: center;
-      font-weight: bold;
     }
 
     td.editable {
@@ -218,20 +183,11 @@
 
     @media (max-width: 600px) {
       header h1 {
-        font-size: 18px;
-      }
-
-      .toolbar {
-        align-items: stretch;
-      }
-
-      .toolbar select,
-      .toolbar button {
-        width: 100%;
+        font-size: 15px;
       }
 
       th, td {
-        min-width: 95px;
+        min-width: 90px;
         padding: 8px;
       }
     }
@@ -260,7 +216,7 @@
 
 <main>
 
-  <!-- Wadah elemen yang disembunyikan (ID tetap ada agar JS tidak error) -->
+  <!-- ELEMEN YANG DISEMBUNYIKAN (TETAP ADA DI DOM AGAR JS TIDAK CRASH) -->
   <div class="hidden-element">
     <select id="sheetSelect" onchange="changeSheet()">
       <option value="DASHBOARD">DASHBOARD</option>
@@ -275,10 +231,10 @@
     <div id="sheetInfo"></div>
   </div>
 
-  <!-- Status koneksi -->
+  <!-- STATUS KONEKSI -->
   <div id="status">Menghubungkan ke server...</div>
 
-  <!-- Panel Tabel Data (TAMPIL) -->
+  <!-- PANEL TABEL DATA (TAMPIL) -->
   <section class="panel">
     <div class="table-wrap">
       <table id="dataTable">
@@ -300,7 +256,7 @@
 
 <script>
   /* ================================================
-     KONFIGURASI
+     KONFIGURASI UTAMA
      ================================================ */
 
   const API_URL = "https://script.google.com/macros/s/AKfycbzLOGNYrQFMm_DWfumPS-12gbLhwS5RWOAeDFqi5uEGpJf59_Gfmd1mNsENNoBtqfzw/exec";
@@ -315,19 +271,37 @@
     "PENGELUARAN"
   ];
 
+  /* ================================================
+     KONFIGURASI LEBAR KOLOM PER SHEET
+     Dapat diatur berdasarkan NAMA HEADER atau INDEKS KOLOM (0 = Kolom A, 1 = Kolom B)
+     ================================================ */
+  const SHEET_COLUMN_WIDTHS = {
+    "REKAP": {
+      0: "80px",            // Kolom pertama (misal: Tanggal / No)
+      1: "150px",           // Kolom kedua
+      "KETERANGAN": "260px",// Berdasarkan nama header
+      "NOMINAL": "140px"
+    },
+    "ACARA": {
+      0: "80px",   // Pertemuan Ke
+      1: "120px",  // Tanggal
+      2: "280px"   // Kegiatan
+    },
+    "ABSEN": {
+      0: "100px",
+      1: "220px"
+    }
+  };
+
   const params = new URLSearchParams(location.search);
 
-  let currentSheet =
-    params.get("sheet") || "DASHBOARD";
+  let currentSheet = params.get("sheet") || "DASHBOARD";
 
-  if (!SHEET_NAMES.includes(currentSheet)) {
+  if (!SHEET_NAMES.map(s => s.toUpperCase()).includes(currentSheet.toUpperCase())) {
     currentSheet = "DASHBOARD";
   }
 
-  const hashParams = new URLSearchParams(
-    location.hash.replace(/^#/, "")
-  );
-
+  const hashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
   const TOKEN = hashParams.get("token") || "";
 
   let currentData = null;
@@ -335,44 +309,21 @@
   let isLoading = false;
   let isSaving = false;
 
+  /* ELEMEN HTML */
+  const sheetSelect = document.getElementById("sheetSelect");
+  const sheetTitle = document.getElementById("sheetTitle");
+  const sheetInfo = document.getElementById("sheetInfo");
+  const statusBox = document.getElementById("status");
+  const dataTable = document.getElementById("dataTable");
+  const saveButton = document.getElementById("saveButton");
 
-  /* ================================================
-     ELEMEN HTML
-     ================================================ */
-
-  const sheetSelect =
-    document.getElementById("sheetSelect");
-
-  const sheetTitle =
-    document.getElementById("sheetTitle");
-
-  const sheetInfo =
-    document.getElementById("sheetInfo");
-
-  const statusBox =
-    document.getElementById("status");
-
-  const dataTable =
-    document.getElementById("dataTable");
-
-  const saveButton =
-    document.getElementById("saveButton");
-
-
-  /* ================================================
-     FUNGSI STATUS
-     ================================================ */
-
+  /* FUNGSI STATUS */
   function showStatus(message, type = "") {
     statusBox.textContent = message;
     statusBox.className = type;
   }
 
-
-  /* ================================================
-     KOMUNIKASI API
-     ================================================ */
-
+  /* KOMUNIKASI API */
   async function apiRequest(payload) {
     const response = await fetch(API_URL, {
       method: "POST",
@@ -384,36 +335,25 @@
     });
 
     if (!response.ok) {
-      throw new Error(
-        "Server memberikan status HTTP " + response.status
-      );
+      throw new Error("Server memberikan status HTTP " + response.status);
     }
 
     const result = await response.json();
 
     if (!result.success) {
-      throw new Error(
-        result.message || "Permintaan API gagal."
-      );
+      throw new Error(result.message || "Permintaan API gagal.");
     }
 
     return result.data;
   }
 
-
-  /* ================================================
-     GANTI SHEET
-     ================================================ */
-
+  /* GANTI SHEET */
   function changeSheet() {
     const nextSheet = sheetSelect.value;
 
     if (
       pendingChanges.size > 0 &&
-      !confirm(
-        "Ada perubahan yang belum disimpan. " +
-        "Pindah sheet dan membuang perubahan tersebut?"
-      )
+      !confirm("Ada perubahan yang belum disimpan. Pindah sheet dan membuang perubahan tersebut?")
     ) {
       sheetSelect.value = currentSheet;
       return;
@@ -424,27 +364,17 @@
 
     const newUrl = new URL(location.href);
     newUrl.searchParams.set("sheet", currentSheet);
-
     history.replaceState(null, "", newUrl);
 
     loadSheet();
   }
 
-
-  /* ================================================
-     MUAT DATA SHEET
-     ================================================ */
-
+  /* MUAT DATA SHEET */
   async function loadSheet() {
     if (isLoading) return;
 
     if (pendingChanges.size > 0) {
-      if (
-        !confirm(
-          "Perubahan belum disimpan. Muat ulang dan " +
-          "buang perubahan tersebut?"
-        )
-      ) {
+      if (!confirm("Perubahan belum disimpan. Muat ulang dan buang perubahan tersebut?")) {
         return;
       }
     }
@@ -454,11 +384,9 @@
     updateSaveButton();
 
     sheetSelect.value = currentSheet;
-
     showStatus("Sedang mengambil data " + currentSheet + "...");
 
-    dataTable.innerHTML =
-      '<tbody><tr><td class="empty">Memuat data...</td></tr></tbody>';
+    dataTable.innerHTML = '<tbody><tr><td class="empty">Memuat data...</td></tr></tbody>';
 
     try {
       const data = await apiRequest({
@@ -468,11 +396,9 @@
       });
 
       currentData = data;
-
       renderTable(data);
 
       sheetTitle.textContent = data.name;
-
       sheetInfo.textContent =
         "Baris header: " + data.headerRow +
         " | Total baris data: " + data.rows.length +
@@ -489,82 +415,71 @@
 
     } catch (err) {
       currentData = null;
-
-      showStatus(
-        "Gagal mengambil data: " + err.message,
-        "error"
-      );
-
-      dataTable.innerHTML =
-        '<tbody><tr><td class="empty">Data tidak dapat dimuat.</td></tr></tbody>';
-
+      showStatus("Gagal mengambil data: " + err.message, "error");
+      dataTable.innerHTML = '<tbody><tr><td class="empty">Data tidak dapat dimuat.</td></tr></tbody>';
       sheetTitle.textContent = currentSheet;
       sheetInfo.textContent = "Gagal memuat data.";
-
     } finally {
       isLoading = false;
     }
   }
 
   /* ================================================
-     TAMPILKAN TABEL (WITH FILTER REKAP)
+     RENDER TABEL (TANPA KOLOM BARIS & DENGAN ATURAN KHUSUS)
      ================================================ */
-
   function renderTable(data) {
     dataTable.innerHTML = "";
 
+    const sheetKey = String(currentSheet || "").toUpperCase();
+    const widthConfigs = SHEET_COLUMN_WIDTHS[sheetKey] || {};
+
+    // Helper untuk menerapkan ukuran lebar kolom
+    function applyColWidth(thElement, headerText, colIndex) {
+      const keyText = String(headerText || "").trim().toUpperCase();
+      const customWidth = widthConfigs[keyText] || widthConfigs[colIndex];
+      if (customWidth) {
+        thElement.style.width = customWidth;
+        thElement.style.minWidth = customWidth;
+      }
+    }
+
     // --------------------------------------------------
-    // 1. ATURAN FILTER KHUSUS SHEET "REKAP"
+    // 1. FILTER KOLOM DAN BARIS (KHUSUS REKAP)
     // --------------------------------------------------
-    let validColIndexes = data.headers.map(function(_, i) { return i; });
+    let validColIndexes = data.headers.map((_, i) => i);
     let rowsToRender = data.rows;
 
-    if (currentSheet === "REKAP") {
-      
-      // A. SEMBUNYIKAN KOLOM
-      // Pilihan 1: Berdasarkan Nama Header (misal: "ID", "Keterangan Rahasia")
-      const hiddenHeaderNames = ["Catatan Internal"];
+    if (sheetKey === "REKAP") {
+      // A. SEMBUNYIKAN KOLOM (Berdasarkan Nama Header atau Indeks)
+      const hiddenHeaderNames = ["ID_INTERNAL", "CATATAN_RAHASIA"];
+      const hiddenColIndexes = []; // misal: [0] untuk sembunyikan kolom pertama
 
-      // Pilihan 2: Berdasarkan Urutan Kolom (0 = Kolom A, 1 = Kolom B, 2 = Kolom C, dst)
-      const hiddenColIndexes = [0]; // Contoh: Sembunyikan kolom pertama (Kolom A)
-
-      // Filter indeks kolom yang diizinkan tampil
       validColIndexes = data.headers
-        .map(function(header, index) {
-          if (hiddenHeaderNames.includes(header) || hiddenColIndexes.includes(index)) {
-            return -1; // Tandai untuk disembunyikan
+        .map((header, index) => {
+          const hName = String(header || "").trim().toUpperCase();
+          if (hiddenHeaderNames.includes(hName) || hiddenColIndexes.includes(index)) {
+            return -1;
           }
           return index;
         })
-        .filter(function(index) { return index !== -1; });
+        .filter(index => index !== -1);
 
+      // B. SEMBUNYIKAN BARIS (Berdasarkan Nomor Baris Fisik Google Sheets)
+      const hiddenRowNumbers = [3]; // Angka 3 = Sembunyikan baris fisik ke-3
 
-      // B. SEMBUNYIKAN BARIS
-      // Pilihan 1: Sembunyikan berdasarkan nomor baris spreadsheet asli (rowNumber)
-      const hiddenRowNumbers = [3]; // Contoh: Sembunyikan baris ke-3
-
-      rowsToRender = data.rows.filter(function(rowData) {
-        // Sembunyikan jika nomor baris ada di daftar hiddenRowNumbers
-        if (hiddenRowNumbers.includes(rowData.rowNumber)) {
-          return false;
-        }
-
-        // Pilihan 2 (Opsional): Sembunyikan jika baris kosong / nilai kolom pertama null
-        // if (!rowData.values[0]) return false;
-
-        return true;
+      rowsToRender = data.rows.filter(rowData => {
+        const rowNum = Number(rowData.rowNumber);
+        return !hiddenRowNumbers.includes(rowNum);
       });
     }
 
-    // 
     // --------------------------------------------------
-    // 2. RENDERING HEADER TABEL (KHUSUS SHEET REKAP)
+    // 2. RENDERING HEADER TABEL
     // --------------------------------------------------
     const thead = document.createElement("thead");
 
-    // Pengecekan ditambah: Hanya jalankan 2 baris jika sheet yang dibuka adalah "REKAP"
-    if (currentSheet === "REKAP" && data.headerRow === 2 && data.headerRows && data.headerRows.length === 2) {
-      
+    // Jika Sheet REKAP dan memiliki 2 Baris Header
+    if (sheetKey === "REKAP" && data.headerRow === 2 && data.headerRows && data.headerRows.length >= 2) {
       const row1 = data.headerRows[0];
       const row2 = data.headerRows[1];
 
@@ -591,12 +506,15 @@
           const th1 = document.createElement("th");
           th1.textContent = h1;
           th1.colSpan = span;
+          applyColWidth(th1, h1, colIdx);
           tr1.appendChild(th1);
 
           for (let s = 0; s < span; s++) {
             const subIdx = validColIndexes[i + s];
+            const subH2 = String(row2[subIdx] || "").trim();
             const th2 = document.createElement("th");
-            th2.textContent = String(row2[subIdx] || "").trim() || "(Tanpa judul)";
+            th2.textContent = subH2 || "(Tanpa judul)";
+            applyColWidth(th2, subH2, subIdx);
             tr2.appendChild(th2);
           }
           i += span;
@@ -605,16 +523,20 @@
           if (h2 === "" || h1 === h2) {
             // Merge Vertikal (rowspan = 2)
             const th = document.createElement("th");
-            th.textContent = h1 || h2 || "(Tanpa judul)";
+            const label = h1 || h2 || "(Tanpa judul)";
+            th.textContent = label;
             th.rowSpan = 2;
+            applyColWidth(th, label, colIdx);
             tr1.appendChild(th);
           } else {
             const th1 = document.createElement("th");
             th1.textContent = h1;
+            applyColWidth(th1, h1, colIdx);
             tr1.appendChild(th1);
 
             const th2 = document.createElement("th");
             th2.textContent = h2;
+            applyColWidth(th2, h2, colIdx);
             tr2.appendChild(th2);
           }
           i++;
@@ -627,11 +549,13 @@
       }
 
     } else {
-      // Header 1 baris standar (Berlaku untuk ACARA, ABSEN, DASHBOARD, dll)
+      // Header 1 Baris Standar (Untuk Sheet Lain)
       const headerRow = document.createElement("tr");
-      validColIndexes.forEach(function(colIndex) {
+      validColIndexes.forEach(colIndex => {
         const th = document.createElement("th");
-        th.textContent = data.headers[colIndex] || "(Tanpa judul)";
+        const headerName = String(data.headers[colIndex] || "").trim();
+        th.textContent = headerName || "(Tanpa judul)";
+        applyColWidth(th, headerName, colIndex);
         headerRow.appendChild(th);
       });
       thead.appendChild(headerRow);
@@ -640,51 +564,43 @@
     dataTable.appendChild(thead);
 
     // --------------------------------------------------
-    // 3. RENDERING ISI BARIS & DATA
+    // 3. RENDERING ISI DATA (TANPA KOLOM BARIS)
     // --------------------------------------------------
     const tbody = document.createElement("tbody");
 
     if (!rowsToRender.length) {
       const tr = document.createElement("tr");
       const td = document.createElement("td");
-
       td.colSpan = validColIndexes.length;
       td.className = "empty";
       td.textContent = "Belum ada data.";
-
       tr.appendChild(td);
       tbody.appendChild(tr);
       dataTable.appendChild(tbody);
       return;
     }
 
-    rowsToRender.forEach(function(rowData) {
+    rowsToRender.forEach(rowData => {
       const tr = document.createElement("tr");
 
-      validColIndexes.forEach(function(colIndex) {
+      validColIndexes.forEach(colIndex => {
         const td = document.createElement("td");
-
-        const value =
-          rowData.values[colIndex] == null
-            ? ""
-            : rowData.values[colIndex];
+        const value = rowData.values[colIndex] == null ? "" : rowData.values[colIndex];
 
         td.textContent = value;
 
-        const isFormula =
-          rowData.formulaCols.includes(colIndex + 1);
+        const isFormula = rowData.formulaCols.includes(colIndex + 1);
 
         if (isFormula) {
           td.classList.add("formula");
           td.title = "Sel formula tidak dapat diedit.";
-
         } else if (data.editable) {
           td.classList.add("editable");
           td.contentEditable = "true";
           td.spellcheck = false;
 
           td.dataset.row = rowData.rowNumber;
-          td.dataset.col = colIndex + 1; // Menjaga koordinat kolom asli di Google Sheets
+          td.dataset.col = colIndex + 1; // Menjaga koordinat kolom Google Sheets
           td.dataset.original = value;
 
           td.addEventListener("input", handleCellEdit);
@@ -699,14 +615,9 @@
     dataTable.appendChild(tbody);
   }
 
-
-  /* ================================================
-     CATAT PERUBAHAN SEL
-     ================================================ */
-
+  /* CATAT PERUBAHAN SEL */
   function handleCellEdit(event) {
     const cell = event.currentTarget;
-
     const row = Number(cell.dataset.row);
     const col = Number(cell.dataset.col);
     const original = cell.dataset.original;
@@ -717,30 +628,16 @@
     if (value === original) {
       pendingChanges.delete(key);
       cell.classList.remove("changed");
-
     } else {
-      pendingChanges.set(key, {
-        row: row,
-        col: col,
-        value: value
-      });
-
+      pendingChanges.set(key, { row: row, col: col, value: value });
       cell.classList.add("changed");
     }
 
     updateSaveButton();
-
-    showStatus(
-      pendingChanges.size +
-      " sel berubah dan belum disimpan."
-    );
+    showStatus(pendingChanges.size + " sel berubah dan belum disimpan.");
   }
 
-
-  /* ================================================
-     TOMBOL SIMPAN
-     ================================================ */
-
+  /* TOMBOL SIMPAN */
   function updateSaveButton() {
     const canSave =
       Boolean(currentData) &&
@@ -749,51 +646,28 @@
       pendingChanges.size > 0 &&
       !isSaving;
 
-    saveButton.style.display =
-      currentData && currentData.editable
-        ? "inline-block"
-        : "none";
-
+    saveButton.style.display = currentData && currentData.editable ? "inline-block" : "none";
     saveButton.disabled = !canSave;
-
-    saveButton.textContent =
-      isSaving
-        ? "Menyimpan..."
-        : "Simpan Perubahan (" + pendingChanges.size + ")";
+    saveButton.textContent = isSaving ? "Menyimpan..." : "Simpan Perubahan (" + pendingChanges.size + ")";
   }
 
-
-  /* ================================================
-     SIMPAN SEMUA PERUBAHAN
-     ================================================ */
-
+  /* SIMPAN SEMUA PERUBAHAN */
   async function saveChanges() {
-    if (isSaving || pendingChanges.size === 0) {
-      return;
-    }
+    if (isSaving || pendingChanges.size === 0) return;
 
     if (!TOKEN) {
-      showStatus(
-        "Token pengurus tidak ditemukan. Silakan login melalui aplikasi OSIS.",
-        "error"
-      );
+      showStatus("Token pengurus tidak ditemukan. Silakan login melalui aplikasi OSIS.", "error");
       return;
     }
 
-    if (!confirm(
-      "Simpan " + pendingChanges.size +
-      " perubahan pada sheet " + currentSheet + "?"
-    )) {
+    if (!confirm("Simpan " + pendingChanges.size + " perubahan pada sheet " + currentSheet + "?")) {
       return;
     }
 
     isSaving = true;
     updateSaveButton();
 
-    const changes = Array.from(
-      pendingChanges.values()
-    );
-
+    const changes = Array.from(pendingChanges.values());
     showStatus("Sedang menyimpan perubahan...");
 
     try {
@@ -805,39 +679,22 @@
       });
 
       pendingChanges.clear();
-
-      showStatus(
-        result.message ||
-        "Perubahan berhasil disimpan.",
-        "success"
-      );
-
+      showStatus(result.message || "Perubahan berhasil disimpan.", "success");
       await loadSheet();
 
     } catch (err) {
-      showStatus(
-        "Gagal menyimpan: " + err.message,
-        "error"
-      );
-
+      showStatus("Gagal menyimpan: " + err.message, "error");
     } finally {
       isSaving = false;
       updateSaveButton();
     }
   }
 
-
-  /* ================================================
-     MULAI PORTAL
-     ================================================ */
-
+  /* MULAI PORTAL */
   sheetSelect.value = currentSheet;
 
   if (!TOKEN) {
-    showStatus(
-      "Mode pengunjung: Anda dapat membaca data publik. " +
-      "Login melalui aplikasi OSIS untuk memperoleh hak edit."
-    );
+    showStatus("Mode pengunjung: Anda dapat membaca data publik. Login melalui aplikasi OSIS untuk memperoleh hak edit.");
   }
 
   loadSheet();
