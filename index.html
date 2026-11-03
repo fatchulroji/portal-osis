@@ -36,7 +36,7 @@
 
     header h1 {
       margin: 0;
-      font-size: 21px;
+      font-size: 16px;
     }
 
     header p {
@@ -76,6 +76,10 @@
     #reloadButton {
       background: white;
       color: #173b70;
+    }
+
+    .hidden-element {
+      display: none !important;
     }
 
     main {
@@ -267,27 +271,25 @@
 
 <main>
 
-  <section class="toolbar">
-    <label for="sheetSelect">Pilih Sheet:</label>
-
+  <!-- Wadah elemen yang disembunyikan (ID tetap ada agar JS tidak error) -->
+  <div class="hidden-element">
     <select id="sheetSelect" onchange="changeSheet()">
-      <option value="DASHBOARD">DASHBOARD - Kehadiran</option>
+      <option value="DASHBOARD">DASHBOARD</option>
       <option value="ACARA">ACARA</option>
       <option value="ABSEN">ABSEN</option>
-      <option value="Dashboard">Dashboard - Anggota</option>
+      <option value="Dashboard">Dashboard</option>
       <option value="Kalender">Kalender</option>
-      <option value="REKAP">REKAP - Kas</option>
+      <option value="REKAP">REKAP</option>
       <option value="PENGELUARAN">PENGELUARAN</option>
     </select>
-  </section>
+    <h2 id="sheetTitle"></h2>
+    <div id="sheetInfo"></div>
+  </div>
 
-  <section class="panel">
-    <h2 id="sheetTitle">Memuat portal...</h2>
-    <div id="sheetInfo">Menyiapkan data.</div>
-  </section>
-
+  <!-- Status koneksi -->
   <div id="status">Menghubungkan ke server...</div>
 
+  <!-- Panel Tabel Data (TETAP TAMPIL) -->
   <section class="panel">
     <div class="table-wrap">
       <table id="dataTable">
