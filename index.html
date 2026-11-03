@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -40,13 +39,7 @@
     }
 
     header p {
-      margin: 5px 0 0;
-      font-size: 13px;
-      opacity: .85;
-    }
-
-    header p {
-     display: none;
+      display: none;
     }
 
     button, select, input {
@@ -101,10 +94,6 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
-    }
-
-    .toolbar, .panel {
-      display: none !important;
     }
 
     label {
@@ -289,7 +278,7 @@
   <!-- Status koneksi -->
   <div id="status">Menghubungkan ke server...</div>
 
-  <!-- Panel Tabel Data (TETAP TAMPIL) -->
+  <!-- Panel Tabel Data (TAMPIL) -->
   <section class="panel">
     <div class="table-wrap">
       <table id="dataTable">
@@ -335,8 +324,6 @@
     currentSheet = "DASHBOARD";
   }
 
-  // Token disimpan pada URL fragment, bukan query string.
-  // Fragment tidak dikirim sebagai bagian request HTTP ke GitHub.
   const hashParams = new URLSearchParams(
     location.hash.replace(/^#/, "")
   );
@@ -719,7 +706,6 @@
         "success"
       );
 
-      // Muat ulang agar tampilan sesuai data server.
       await loadSheet();
 
     } catch (err) {
