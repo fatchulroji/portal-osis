@@ -303,8 +303,7 @@
   const SHEET_COLUMN_WIDTHS = {
     "REKAP": {
       0: "40px",
-      1: "150px",
-      3: "30px"
+      1: "150px"
     },
     "ACARA": {
       0: "70px",   // Pertemuan Ke
@@ -496,6 +495,22 @@
         return !hiddenRowNumbers.includes(rowNum);
       });
     }
+
+/* ----------------------------------------------------
+       TAMBAHKAN BAGIAN INI: BIKIN COLGROUP SECARA DINAMIS
+       ---------------------------------------------------- */
+    const colgroup = document.createElement("colgroup");
+    validColIndexes.forEach((colIndex, visualIndex) => {
+      const col = document.createElement("col");
+      
+      // Ambil lebar khusus dari SHEET_COLUMN_WIDTHS
+      // Jika kolom tanggal/rekap (kolom index ke-2 dan seterusnya) tidak diatur, berikan default "32px"
+      const customWidth = widthConfigs[colIndex] || (visualIndex >= 2 ? "32px" : "auto");
+      
+      col.style.width = customWidth;
+      colgroup.appendChild(col);
+    });
+    dataTable.appendChild(colgroup);
 
     const thead = document.createElement("thead");
 
