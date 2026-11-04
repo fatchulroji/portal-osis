@@ -210,6 +210,10 @@
         Simpan Perubahan
       </button>
 
+      <button id="addRowButton" onclick="tambahBaris()" style="background: #28a745; color: white; display: none;">
+       Tambah Baris
+      </button>
+
       <button id="reloadButton" onclick="loadSheet()">
         Muat Ulang
       </button>
@@ -657,6 +661,18 @@
       Boolean(TOKEN) &&
       pendingChanges.size > 0 &&
       !isSaving;
+    const addRowBtn = document.getElementById("addRowButton");
+
+    // Tampilkan tombol Tambah Baris hanya jika sheet dalam mode edit
+    if (addRowBtn) {
+      addRowBtn.style.display = canEdit ? "inline-block" : "none";
+    }
+
+    const canSave =
+      canEdit &&
+      Boolean(TOKEN) &&
+      pendingChanges.size > 0 &&
+      !isSaving;
 
     saveButton.style.display = currentData && currentData.editable ? "inline-block" : "none";
     saveButton.disabled = !canSave;
@@ -710,6 +726,52 @@
   }
 
   loadSheet();
+
+  /* ================================================
+     FUNGSI TAMBAH BARIS BARU
+     ================================================ */
+  function tambahBaris() {
+    if (!currentData || !currentData.editable) {
+      showStatus("Anda tidak memiliki izin untuk menambah data pada sheet ini.", "error");
+      return;
+    }
+
+    const tbody = dataTable.querySelector("tbody");
+    if (!tbody) return;
+
+    // Ambil nomor baris fisik terakhir dari Google Sheets
+    const lastPhysicalRow = currentData.rows.length > 0
+      ? currentData.rows[currentData.rows.length - 1].rowNumber
+      : (currentData.headerRow || 1);
+
+    const extraRows = tbody.querySelectorAll("tr.new-row").length;
+    const nextRowNumber = lastPhysicalRow + extraRows + 1;
+
+    const tr = document.createElement("tr");
+    tr.classList.add("new-row");
+
+    // Loop sesuai jumlah kolom header sheet yang aktif
+    currentData.headers.forEach((_, colIndex) => {
+      const td = document.createElement("td");
+      td.className = "editable";
+      td.contentEditable = "true";
+      td.spellcheck = false;
+
+      // Set koordinat baris & kolom untuk Apps Script
+      td.dataset.row = nextRowNumber;
+      td.dataset.col = colIndex + 1;
+      td.dataset.original = "";
+
+      td.addEventListener("input", handleCellEdit);
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+
+    // Fokus langsung ke sel pertama pada baris baru
+    const firstCell = tr.querySelector("td");
+    if (firstCell) firstCell.focus();
+  }
 
 </script>
 
