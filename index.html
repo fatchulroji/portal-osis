@@ -147,7 +147,7 @@
       white-space: normal;
       word-break: break-word;
       text-align: center;
-      line-hight: 1.2;
+      line-height: 1.2;
     }
 
     td.editable {
@@ -211,7 +211,7 @@
       </button>
 
       <button id="addRowButton" onclick="tambahBaris()" style="background: #28a745; color: white; display: none;">
-       Tambah Baris
+        + Tambah Baris
       </button>
 
       <button id="reloadButton" onclick="loadSheet()">
@@ -280,19 +280,19 @@
 
   /* ================================================
      KONFIGURASI LEBAR KOLOM PER SHEET
-     Dapat diatur berdasarkan NAMA HEADER atau INDEKS KOLOM (0 = Kolom A, 1 = Kolom B)
      ================================================ */
   const SHEET_COLUMN_WIDTHS = {
     "REKAP": {
-      0: "80px",            // Kolom pertama (misal: Tanggal / No)
-      1: "150px",           // Kolom kedua
-      "KETERANGAN": "260px",// Berdasarkan nama header
+      0: "40px",
+      1: "150px",
+      3: "30px",
+      "KETERANGAN": "260px",
       "NOMINAL": "140px"
     },
     "ACARA": {
       0: "70px",   // Pertemuan Ke
-      1: "80px",  // Tanggal
-      2: "200px",   // Kegiatan
+      1: "80px",   // Tanggal
+      2: "200px",  // Kegiatan
       3: "60px",
       4: "60px",
       5: "60px",
@@ -301,10 +301,6 @@
     "ABSEN": {
       0: "100px",
       1: "220px"
-    },
-    "REKAP": {
-      0: "40px",
-      3: "30px"
     }
   };
 
@@ -440,7 +436,7 @@
   }
 
   /* ================================================
-     RENDER TABEL (TANPA KOLOM BARIS & DENGAN ATURAN KHUSUS)
+     RENDER TABEL
      ================================================ */
   function renderTable(data) {
     dataTable.innerHTML = "";
@@ -448,7 +444,6 @@
     const sheetKey = String(currentSheet || "").toUpperCase();
     const widthConfigs = SHEET_COLUMN_WIDTHS[sheetKey] || {};
 
-    // Helper untuk menerapkan ukuran lebar kolom
     function applyColWidth(thElement, headerText, colIndex) {
       const keyText = String(headerText || "").trim().toUpperCase();
       const customWidth = widthConfigs[keyText] || widthConfigs[colIndex];
@@ -459,16 +454,12 @@
       }
     }
 
-    // --------------------------------------------------
-    // 1. FILTER KOLOM DAN BARIS (KHUSUS REKAP)
-    // --------------------------------------------------
     let validColIndexes = data.headers.map((_, i) => i);
     let rowsToRender = data.rows;
 
     if (sheetKey === "REKAP") {
-      // A. SEMBUNYIKAN KOLOM (Berdasarkan Nama Header atau Indeks)
       const hiddenHeaderNames = ["ID_INTERNAL", "CATATAN_RAHASIA"];
-      const hiddenColIndexes = []; // misal: [0] untuk sembunyikan kolom pertama
+      const hiddenColIndexes = [];
 
       validColIndexes = data.headers
         .map((header, index) => {
@@ -480,8 +471,7 @@
         })
         .filter(index => index !== -1);
 
-      // B. SEMBUNYIKAN BARIS (Berdasarkan Nomor Baris Fisik Google Sheets)
-      const hiddenRowNumbers = [3]; // Angka 3 = Sembunyikan baris fisik ke-3
+      const hiddenRowNumbers = [3];
 
       rowsToRender = data.rows.filter(rowData => {
         const rowNum = Number(rowData.rowNumber);
@@ -489,12 +479,8 @@
       });
     }
 
-    // --------------------------------------------------
-    // 2. RENDERING HEADER TABEL
-    // --------------------------------------------------
     const thead = document.createElement("thead");
 
-    // Jika Sheet REKAP dan memiliki 2 Baris Header
     if (sheetKey === "REKAP" && data.headerRow === 2 && data.headerRows && data.headerRows.length >= 2) {
       const row1 = data.headerRows[0];
       const row2 = data.headerRows[1];
@@ -518,7 +504,6 @@
         }
 
         if (span > 1) {
-          // Merge Horizontal (colspan)
           const th1 = document.createElement("th");
           th1.textContent = h1;
           th1.colSpan = span;
@@ -535,9 +520,7 @@
           }
           i += span;
         } else {
-          // Kolom Tunggal
           if (h2 === "" || h1 === h2) {
-            // Merge Vertikal (rowspan = 2)
             const th = document.createElement("th");
             const label = h1 || h2 || "(Tanpa judul)";
             th.textContent = label;
@@ -565,7 +548,6 @@
       }
 
     } else {
-      // Header 1 Baris Standar (Untuk Sheet Lain)
       const headerRow = document.createElement("tr");
       validColIndexes.forEach(colIndex => {
         const th = document.createElement("th");
@@ -579,9 +561,6 @@
 
     dataTable.appendChild(thead);
 
-    // --------------------------------------------------
-    // 3. RENDERING ISI DATA (TANPA KOLOM BARIS)
-    // --------------------------------------------------
     const tbody = document.createElement("tbody");
 
     if (!rowsToRender.length) {
@@ -616,7 +595,7 @@
           td.spellcheck = false;
 
           td.dataset.row = rowData.rowNumber;
-          td.dataset.col = colIndex + 1; // Menjaga koordinat kolom Google Sheets
+          td.dataset.col = colIndex + 1;
           td.dataset.original = value;
 
           td.addEventListener("input", handleCellEdit);
@@ -653,17 +632,11 @@
     showStatus(pendingChanges.size + " sel berubah dan belum disimpan.");
   }
 
-  /* TOMBOL SIMPAN */
+  /* TOMBOL SIMPAN & TAMBAH BARIS */
   function updateSaveButton() {
-    const canSave =
-      Boolean(currentData) &&
-      currentData.editable === true &&
-      Boolean(TOKEN) &&
-      pendingChanges.size > 0 &&
-      !isSaving;
+    const canEdit = Boolean(currentData) && currentData.editable === true;
     const addRowBtn = document.getElementById("addRowButton");
 
-    // Tampilkan tombol Tambah Baris hanya jika sheet dalam mode edit
     if (addRowBtn) {
       addRowBtn.style.display = canEdit ? "inline-block" : "none";
     }
@@ -674,7 +647,7 @@
       pendingChanges.size > 0 &&
       !isSaving;
 
-    saveButton.style.display = currentData && currentData.editable ? "inline-block" : "none";
+    saveButton.style.display = canEdit ? "inline-block" : "none";
     saveButton.disabled = !canSave;
     saveButton.textContent = isSaving ? "Menyimpan..." : "Simpan Perubahan (" + pendingChanges.size + ")";
   }
@@ -718,17 +691,8 @@
     }
   }
 
-  /* MULAI PORTAL */
-  sheetSelect.value = currentSheet;
-
-  if (!TOKEN) {
-    showStatus("Mode pengunjung: Anda dapat membaca data publik. Login melalui aplikasi OSIS untuk memperoleh hak edit.");
-  }
-
-  loadSheet();
-
   /* ================================================
-     FUNGSI TAMBAH BARIS BARU
+     FUNGSI TAMBAH BARIS BARU (LENGKAP)
      ================================================ */
   function tambahBaris() {
     if (!currentData || !currentData.editable) {
@@ -739,7 +703,6 @@
     const tbody = dataTable.querySelector("tbody");
     if (!tbody) return;
 
-    // Ambil nomor baris fisik terakhir dari Google Sheets
     const lastPhysicalRow = currentData.rows.length > 0
       ? currentData.rows[currentData.rows.length - 1].rowNumber
       : (currentData.headerRow || 1);
@@ -750,14 +713,12 @@
     const tr = document.createElement("tr");
     tr.classList.add("new-row");
 
-    // Loop sesuai jumlah kolom header sheet yang aktif
     currentData.headers.forEach((_, colIndex) => {
       const td = document.createElement("td");
       td.className = "editable";
       td.contentEditable = "true";
       td.spellcheck = false;
 
-      // Set koordinat baris & kolom untuk Apps Script
       td.dataset.row = nextRowNumber;
       td.dataset.col = colIndex + 1;
       td.dataset.original = "";
@@ -768,10 +729,18 @@
 
     tbody.appendChild(tr);
 
-    // Fokus langsung ke sel pertama pada baris baru
     const firstCell = tr.querySelector("td");
     if (firstCell) firstCell.focus();
   }
+
+  /* MULAI PORTAL */
+  sheetSelect.value = currentSheet;
+
+  if (!TOKEN) {
+    showStatus("Mode pengunjung: Anda dapat membaca data publik. Login melalui aplikasi OSIS untuk memperoleh hak edit.");
+  }
+
+  loadSheet();
 
 </script>
 
