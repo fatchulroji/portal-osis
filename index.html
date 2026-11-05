@@ -137,17 +137,20 @@
 
     th, td {
       border: 1px solid #dce1e9;
-      padding: 6px 8px;
+      padding: 6px 4px;
       min-width: 20px;
       max-width: 350px;
-      text-align: left;
+      text-align: center;
       vertical-align: middle;
       overflow-wrap: anywhere;
       overflow: hidden;
       text-overflow: ellipsis;
       word-break: break-word;
-      white-space: normal;
+      white-space: nowrap;
     }
+    td:nth-child(2) {
+      text-align: left;
+    {
 
     th {
       background: #eaf0f8;
@@ -302,8 +305,10 @@
      ================================================ */
   const SHEET_COLUMN_WIDTHS = {
     "REKAP": {
-      0: "40px",
-      1: "150px"
+      "NO": "40px",
+      "NAMA": "160px",
+      "TOTAL": "80px",
+      "(TANPA JUDUL)": "80px"
     },
     "ACARA": {
       0: "70px",   // Pertemuan Ke
@@ -453,23 +458,13 @@
   }
 
   /* ================================================
-     RENDER TABEL
+     RENDER TABEL (SOLUSI FIX KOLOM & TOTAL)
      ================================================ */
   function renderTable(data) {
     dataTable.innerHTML = "";
 
     const sheetKey = String(currentSheet || "").toUpperCase();
     const widthConfigs = SHEET_COLUMN_WIDTHS[sheetKey] || {};
-
-    function applyColWidth(thElement, headerText, colIndex) {
-      const keyText = String(headerText || "").trim().toUpperCase();
-      const customWidth = widthConfigs[keyText] || widthConfigs[colIndex];
-      if (customWidth) {
-        thElement.style.width = customWidth;
-        thElement.style.minWidth = customWidth;
-        thElement.style.maxWidth = customWidth;
-      }
-    }
 
     let validColIndexes = data.headers.map((_, i) => i);
     let rowsToRender = data.rows;
@@ -496,22 +491,37 @@
       });
     }
 
-/* ----------------------------------------------------
-       TAMBAHKAN BAGIAN INI: BIKIN COLGROUP SECARA DINAMIS
+    /* ----------------------------------------------------
+       1. KONTROL UKURAN KOLOM PRESISI DENGAN COLGROUP
        ---------------------------------------------------- */
     const colgroup = document.createElement("colgroup");
     validColIndexes.forEach((colIndex, visualIndex) => {
       const col = document.createElement("col");
+      const headerName = String(data.headers[colIndex] || "").trim().toUpperCase();
       
-      // Ambil lebar khusus dari SHEET_COLUMN_WIDTHS
-      // Jika kolom tanggal/rekap (kolom index ke-2 dan seterusnya) tidak diatur, berikan default "32px"
-      const customWidth = widthConfigs[colIndex] || (visualIndex >= 2 ? "32px" : "auto");
+      // Ambil ukuran spesifik berdasarkan nama header atau index
+      let colWidth = widthConfigs[headerName] || widthConfigs[colIndex];
       
-      col.style.width = customWidth;
+      if (!colWidth) {
+        if (headerName.includes("TOTAL")) {
+          colWidth = "80px";
+        } else if (visualIndex === 0) {
+          colWidth = "40px";
+        } else if (visualIndex === 1) {
+          colWidth = "160px";
+        } else {
+          colWidth = "35px"; // Lebar standar kolom tanggal rekap (1, 2, 3...)
+        }
+      }
+
+      col.style.width = colWidth;
       colgroup.appendChild(col);
     });
     dataTable.appendChild(colgroup);
 
+    /* ----------------------------------------------------
+       2. RENDER THEAD (HEADER TABEL)
+       ---------------------------------------------------- */
     const thead = document.createElement("thead");
 
     if (sheetKey === "REKAP" && data.headerRow === 2 && data.headerRows && data.headerRows.length >= 2) {
@@ -540,7 +550,6 @@
           const th1 = document.createElement("th");
           th1.textContent = h1;
           th1.colSpan = span;
-          applyColWidth(th1, h1, colIdx);
           tr1.appendChild(th1);
 
           for (let s = 0; s < span; s++) {
@@ -548,7 +557,6 @@
             const subH2 = String(row2[subIdx] || "").trim();
             const th2 = document.createElement("th");
             th2.textContent = subH2 || "(Tanpa judul)";
-            applyColWidth(th2, subH2, subIdx);
             tr2.appendChild(th2);
           }
           i += span;
@@ -558,17 +566,14 @@
             const label = h1 || h2 || "(Tanpa judul)";
             th.textContent = label;
             th.rowSpan = 2;
-            applyColWidth(th, label, colIdx);
             tr1.appendChild(th);
           } else {
             const th1 = document.createElement("th");
             th1.textContent = h1;
-            applyColWidth(th1, h1, colIdx);
             tr1.appendChild(th1);
 
             const th2 = document.createElement("th");
             th2.textContent = h2;
-            applyColWidth(th2, h2, colIdx);
             tr2.appendChild(th2);
           }
           i++;
@@ -586,7 +591,6 @@
         const th = document.createElement("th");
         const headerName = String(data.headers[colIndex] || "").trim();
         th.textContent = headerName || "(Tanpa judul)";
-        applyColWidth(th, headerName, colIndex);
         headerRow.appendChild(th);
       });
       thead.appendChild(headerRow);
@@ -594,6 +598,9 @@
 
     dataTable.appendChild(thead);
 
+    /* ----------------------------------------------------
+       3. RENDER TBODY (ISI DATA)
+       ---------------------------------------------------- */
     const tbody = document.createElement("tbody");
 
     if (!rowsToRender.length) {
@@ -642,6 +649,7 @@
 
     dataTable.appendChild(tbody);
   }
+
 
   /* CATAT PERUBAHAN SEL */
   function handleCellEdit(event) {
