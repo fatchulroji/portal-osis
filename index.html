@@ -140,17 +140,46 @@
       padding: 6px 4px;
       min-width: 20px;
       max-width: 350px;
-      text-align: center;
+      text-align: left;
       vertical-align: middle;
-      overflow-wrap: anywhere;
-      overflow: hidden;
       text-overflow: ellipsis;
-      word-break: break-word;
       white-space: nowrap;
     }
     td:nth-child(2) {
       text-align: left;
-    {
+    }
+
+    thead tr:nth-child(1) th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #eaf0f8;
+      color: #173b70;
+    }
+
+    thead tr:nth-child(2) th {
+      position: sticky;
+      top: 28px;
+      z-index: 9;
+      background: #eaf0f8;
+      color: #173b70;
+    }
+
+    .freeze-col {
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 11 !important;
+      background-color: #ffffff !important;
+    }
+
+    thead th.freeze-col {
+      z-index: 12 !important;
+      background-color: #d8e4f4 !important;
+    }
+
+    tbody tr:nth-child(even) td.freeze-col {
+      background-color: #f8f9fa !important;
+    }
 
     th {
       background: #eaf0f8;
@@ -580,6 +609,9 @@
         }
       }
 
+      if (colIndex === 0) th.classList.add("freeze-col");
+if (colIdx === 0) th.classList.add("freeze-col");
+
       thead.appendChild(tr1);
       if (tr2.children.length > 0) {
         thead.appendChild(tr2);
@@ -615,29 +647,30 @@
       return;
     }
 
+        /* 2. RENDER TBODY (ISI DATA) */
     rowsToRender.forEach(rowData => {
       const tr = document.createElement("tr");
 
-      validColIndexes.forEach(colIndex => {
+      validColIndexes.forEach((colIndex, visualIndex) => {
         const td = document.createElement("td");
         const value = rowData.values[colIndex] == null ? "" : rowData.values[colIndex];
 
         td.textContent = value;
 
-        const isFormula = rowData.formulaCols.includes(colIndex + 1);
+        /* KUNCI FREEZE: Tambahkan freeze-col hanya pada kolom paling pertama */
+        if (visualIndex === 0) {
+          td.classList.add("freeze-col");
+        }
 
+        const isFormula = rowData.formulaCols.includes(colIndex + 1);
         if (isFormula) {
           td.classList.add("formula");
-          td.title = "Sel formula tidak dapat diedit.";
         } else if (data.editable) {
           td.classList.add("editable");
           td.contentEditable = "true";
-          td.spellcheck = false;
-
           td.dataset.row = rowData.rowNumber;
           td.dataset.col = colIndex + 1;
           td.dataset.original = value;
-
           td.addEventListener("input", handleCellEdit);
         }
 
