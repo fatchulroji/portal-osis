@@ -323,8 +323,11 @@
       6: "100px"
     },
     "ABSEN": {
-      0: "80px",
-      1: "200px"
+      0: "40px",
+      1: "180px",
+      "NO": "40px",
+      "NAMA": "180px",
+      "TOTAL": "80"
     }
   };
 
@@ -511,7 +514,7 @@
     /* 2. RENDER THEAD (HEADER TABEL) */
     const thead = document.createElement("thead");
 
-    if (sheetKey === "REKAP" && data.headerRow === 2 && data.headerRows && data.headerRows.length >= 2) {
+    if (data.headerRows && data.headerRows.length >= 2) {
       const row1 = data.headerRows[0];
       const row2 = data.headerRows[1];
 
