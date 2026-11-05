@@ -78,7 +78,6 @@
       color: #173b70;
     }
 
-    /* KELAS KHUSUS MENYEMBUNYIKAN ELEMEN TANPA MERUSAK SCRIPT */
     .hidden-element {
       display: none !important;
     }
@@ -140,21 +139,24 @@
       padding: 6px 4px;
       min-width: 20px;
       max-width: 350px;
-      text-align: left;
+      text-align: center;
       vertical-align: middle;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
     td:nth-child(2) {
       text-align: left;
     }
 
+    /* HEADER STICKY ATAS */
     thead tr:nth-child(1) th {
       position: sticky;
       top: 0;
       z-index: 10;
       background: #eaf0f8;
       color: #173b70;
+      line-height: 1.2;
     }
 
     thead tr:nth-child(2) th {
@@ -163,8 +165,10 @@
       z-index: 9;
       background: #eaf0f8;
       color: #173b70;
+      line-height: 1.2;
     }
 
+    /* FREEZE KOLOM PERTAMA (KIRI) */
     .freeze-col {
       position: sticky !important;
       left: 0 !important;
@@ -179,26 +183,6 @@
 
     tbody tr:nth-child(even) td.freeze-col {
       background-color: #f8f9fa !important;
-    }
-
-    th {
-      background: #eaf0f8;
-      color: #173b70;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      white-space: normal;
-      word-break: break-word;
-      text-align: center;
-      line-height: 1.2;
-    }
-
-    th:first-child,
-    td:first-child {
-      position: sticky;
-      left: 0;
-      background-color: #ffffff;
-      z-index: 1;
     }
 
     td.editable {
@@ -274,7 +258,6 @@
 
 <main>
 
-  <!-- ELEMEN YANG DISEMBUNYIKAN (TETAP ADA DI DOM AGAR JS TIDAK CRASH) -->
   <div class="hidden-element">
     <select id="sheetSelect" onchange="changeSheet()">
       <option value="DASHBOARD">DASHBOARD</option>
@@ -289,10 +272,8 @@
     <div id="sheetInfo"></div>
   </div>
 
-  <!-- STATUS KONEKSI -->
   <div id="status">Menghubungkan ke server...</div>
 
-  <!-- PANEL TABEL DATA (TAMPIL) -->
   <section class="panel">
     <div class="table-wrap">
       <table id="dataTable">
@@ -313,10 +294,6 @@
 </main>
 
 <script>
-  /* ================================================
-     KONFIGURASI UTAMA
-     ================================================ */
-
   const API_URL = "https://script.google.com/macros/s/AKfycbzLOGNYrQFMm_DWfumPS-12gbLhwS5RWOAeDFqi5uEGpJf59_Gfmd1mNsENNoBtqfzw/exec";
 
   const SHEET_NAMES = [
@@ -329,9 +306,6 @@
     "PENGELUARAN"
   ];
 
-  /* ================================================
-     KONFIGURASI LEBAR KOLOM PER SHEET
-     ================================================ */
   const SHEET_COLUMN_WIDTHS = {
     "REKAP": {
       "NO": "40px",
@@ -340,9 +314,9 @@
       "(TANPA JUDUL)": "80px"
     },
     "ACARA": {
-      0: "70px",   // Pertemuan Ke
-      1: "80px",   // Tanggal
-      2: "200px",  // Kegiatan
+      0: "70px",
+      1: "80px",
+      2: "200px",
       3: "60px",
       4: "60px",
       5: "60px",
@@ -356,7 +330,6 @@
   };
 
   const params = new URLSearchParams(location.search);
-
   let currentSheet = params.get("sheet") || "DASHBOARD";
 
   if (!SHEET_NAMES.map(s => s.toUpperCase()).includes(currentSheet.toUpperCase())) {
@@ -371,7 +344,6 @@
   let isLoading = false;
   let isSaving = false;
 
-  /* ELEMEN HTML */
   const sheetSelect = document.getElementById("sheetSelect");
   const sheetTitle = document.getElementById("sheetTitle");
   const sheetInfo = document.getElementById("sheetInfo");
@@ -379,13 +351,11 @@
   const dataTable = document.getElementById("dataTable");
   const saveButton = document.getElementById("saveButton");
 
-  /* FUNGSI STATUS */
   function showStatus(message, type = "") {
     statusBox.textContent = message;
     statusBox.className = type;
   }
 
-  /* KOMUNIKASI API */
   async function apiRequest(payload) {
     const response = await fetch(API_URL, {
       method: "POST",
@@ -401,7 +371,6 @@
     }
 
     const result = await response.json();
-
     if (!result.success) {
       throw new Error(result.message || "Permintaan API gagal.");
     }
@@ -409,7 +378,6 @@
     return result.data;
   }
 
-  /* GANTI SHEET */
   function changeSheet() {
     const nextSheet = sheetSelect.value;
 
@@ -431,7 +399,6 @@
     loadSheet();
   }
 
-  /* MUAT DATA SHEET */
   async function loadSheet() {
     if (isLoading) return;
 
@@ -486,9 +453,6 @@
     }
   }
 
-  /* ================================================
-     RENDER TABEL (SOLUSI FIX KOLOM & TOTAL)
-     ================================================ */
   function renderTable(data) {
     dataTable.innerHTML = "";
 
@@ -520,15 +484,12 @@
       });
     }
 
-    /* ----------------------------------------------------
-       1. KONTROL UKURAN KOLOM PRESISI DENGAN COLGROUP
-       ---------------------------------------------------- */
+    /* 1. KONTROL UKURAN KOLOM DENGAN COLGROUP */
     const colgroup = document.createElement("colgroup");
     validColIndexes.forEach((colIndex, visualIndex) => {
       const col = document.createElement("col");
       const headerName = String(data.headers[colIndex] || "").trim().toUpperCase();
       
-      // Ambil ukuran spesifik berdasarkan nama header atau index
       let colWidth = widthConfigs[headerName] || widthConfigs[colIndex];
       
       if (!colWidth) {
@@ -539,7 +500,7 @@
         } else if (visualIndex === 1) {
           colWidth = "160px";
         } else {
-          colWidth = "35px"; // Lebar standar kolom tanggal rekap (1, 2, 3...)
+          colWidth = "35px";
         }
       }
 
@@ -548,9 +509,7 @@
     });
     dataTable.appendChild(colgroup);
 
-    /* ----------------------------------------------------
-       2. RENDER THEAD (HEADER TABEL)
-       ---------------------------------------------------- */
+    /* 2. RENDER THEAD (HEADER TABEL) */
     const thead = document.createElement("thead");
 
     if (sheetKey === "REKAP" && data.headerRow === 2 && data.headerRows && data.headerRows.length >= 2) {
@@ -579,6 +538,7 @@
           const th1 = document.createElement("th");
           th1.textContent = h1;
           th1.colSpan = span;
+          if (i === 0) th1.classList.add("freeze-col");
           tr1.appendChild(th1);
 
           for (let s = 0; s < span; s++) {
@@ -586,6 +546,7 @@
             const subH2 = String(row2[subIdx] || "").trim();
             const th2 = document.createElement("th");
             th2.textContent = subH2 || "(Tanpa judul)";
+            if (i + s === 0) th2.classList.add("freeze-col");
             tr2.appendChild(th2);
           }
           i += span;
@@ -595,22 +556,22 @@
             const label = h1 || h2 || "(Tanpa judul)";
             th.textContent = label;
             th.rowSpan = 2;
+            if (i === 0) th.classList.add("freeze-col");
             tr1.appendChild(th);
           } else {
             const th1 = document.createElement("th");
             th1.textContent = h1;
+            if (i === 0) th1.classList.add("freeze-col");
             tr1.appendChild(th1);
 
             const th2 = document.createElement("th");
             th2.textContent = h2;
+            if (i === 0) th2.classList.add("freeze-col");
             tr2.appendChild(th2);
           }
           i++;
         }
       }
-
-      if (colIndex === 0) th.classList.add("freeze-col");
-if (colIdx === 0) th.classList.add("freeze-col");
 
       thead.appendChild(tr1);
       if (tr2.children.length > 0) {
@@ -619,10 +580,11 @@ if (colIdx === 0) th.classList.add("freeze-col");
 
     } else {
       const headerRow = document.createElement("tr");
-      validColIndexes.forEach(colIndex => {
+      validColIndexes.forEach((colIndex, visualIndex) => {
         const th = document.createElement("th");
         const headerName = String(data.headers[colIndex] || "").trim();
         th.textContent = headerName || "(Tanpa judul)";
+        if (visualIndex === 0) th.classList.add("freeze-col");
         headerRow.appendChild(th);
       });
       thead.appendChild(headerRow);
@@ -630,9 +592,7 @@ if (colIdx === 0) th.classList.add("freeze-col");
 
     dataTable.appendChild(thead);
 
-    /* ----------------------------------------------------
-       3. RENDER TBODY (ISI DATA)
-       ---------------------------------------------------- */
+    /* 3. RENDER TBODY (ISI DATA) */
     const tbody = document.createElement("tbody");
 
     if (!rowsToRender.length) {
@@ -647,7 +607,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
       return;
     }
 
-        /* 2. RENDER TBODY (ISI DATA) */
     rowsToRender.forEach(rowData => {
       const tr = document.createElement("tr");
 
@@ -657,7 +616,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
 
         td.textContent = value;
 
-        /* KUNCI FREEZE: Tambahkan freeze-col hanya pada kolom paling pertama */
         if (visualIndex === 0) {
           td.classList.add("freeze-col");
         }
@@ -683,8 +641,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
     dataTable.appendChild(tbody);
   }
 
-
-  /* CATAT PERUBAHAN SEL */
   function handleCellEdit(event) {
     const cell = event.currentTarget;
     const row = Number(cell.dataset.row);
@@ -706,7 +662,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
     showStatus(pendingChanges.size + " sel berubah dan belum disimpan.");
   }
 
-  /* TOMBOL SIMPAN & TAMBAH BARIS */
   function updateSaveButton() {
     const canEdit = Boolean(currentData) && currentData.editable === true;
     const addRowBtn = document.getElementById("addRowButton");
@@ -726,7 +681,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
     saveButton.textContent = isSaving ? "Menyimpan..." : "Simpan Perubahan (" + pendingChanges.size + ")";
   }
 
-  /* SIMPAN SEMUA PERUBAHAN */
   async function saveChanges() {
     if (isSaving || pendingChanges.size === 0) return;
 
@@ -765,9 +719,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
     }
   }
 
-  /* ================================================
-     FUNGSI TAMBAH BARIS BARU (LENGKAP)
-     ================================================ */
   function tambahBaris() {
     if (!currentData || !currentData.editable) {
       showStatus("Anda tidak memiliki izin untuk menambah data pada sheet ini.", "error");
@@ -807,7 +758,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
     if (firstCell) firstCell.focus();
   }
 
-  /* MULAI PORTAL */
   sheetSelect.value = currentSheet;
 
   if (!TOKEN) {
@@ -815,7 +765,6 @@ if (colIdx === 0) th.classList.add("freeze-col");
   }
 
   loadSheet();
-
 </script>
 
 </body>
