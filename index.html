@@ -622,6 +622,14 @@
 
         td.textContent = value;
 
+        // Mengikuti warna latar belakang dari Google Sheets
+        const cellBackground = rowData.backgrounds
+  ? rowData.backgrounds[colIndex]
+  : null;
+
+        if (cellBackground) {
+  td.style.backgroundColor = cellBackground;
+}
         if (visualIndex === 0) {
           td.classList.add("freeze-col");
         }
