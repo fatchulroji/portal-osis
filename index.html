@@ -147,6 +147,10 @@
     td:nth-child(2) {
       text-align: left;
     }
+    /* KHUSUS SHEET ACARA: KOLOM KE-3 (KEGIATAN) RATA KIRI */
+    #dataTable.sheet-acara tbody td:nth-child(3) {
+  text-align: left;
+}
 
     /* HEADER STICKY ATAS */
     thead tr:nth-child(1) th {
@@ -330,8 +334,8 @@
       "TOTAL": "80"
     },
     "KALENDER": {
-      1: "50px",
-      "HARI": "50px"
+      1: "70px",
+      "HARI": "70px"
     }
   };
 
@@ -464,6 +468,8 @@
 
     const sheetKey = String(currentSheet || "").toUpperCase();
     const widthConfigs = SHEET_COLUMN_WIDTHS[sheetKey] || {};
+// Alignment khusus sheet ACARA
+dataTable.classList.toggle("sheet-acara", sheetKey === "ACARA");
 
     let validColIndexes = data.headers.map((_, i) => i);
     let rowsToRender = data.rows;
