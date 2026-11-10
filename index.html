@@ -474,6 +474,19 @@ dataTable.classList.toggle("sheet-acara", sheetKey === "ACARA");
     let validColIndexes = data.headers.map((_, i) => i);
     let rowsToRender = data.rows;
 
+// KHUSUS SHEET ACARA: SEMBUNYIKAN KOLOM EVENT ID
+if (sheetKey === "ACARA") {
+  const hiddenHeaderNames = ["EVENT ID"];
+
+  validColIndexes = validColIndexes.filter(index => {
+    const headerName = String(data.headers[index] || "")
+      .trim()
+      .toUpperCase();
+
+    return !hiddenHeaderNames.includes(headerName);
+  });
+}
+
     if (sheetKey === "REKAP") {
       const hiddenHeaderNames = ["ID_INTERNAL", "CATATAN_RAHASIA"];
       const hiddenColIndexes = [];
