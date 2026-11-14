@@ -473,26 +473,42 @@
   function renderTable(data) {
     dataTable.innerHTML = "";
 
-    const sheetKey = String(currentSheet || "").toUpperCase();
+        const sheetKey = String(currentSheet || "").toUpperCase();
     const widthConfigs = SHEET_COLUMN_WIDTHS[sheetKey] || {};
-// Alignment khusus sheet ACARA
-dataTable.classList.toggle("sheet-acara", sheetKey === "ACARA");
+
+    // Aktifkan class alignment untuk ACARA dan DATA
+    dataTable.classList.toggle("sheet-acara", sheetKey === "ACARA");
+    dataTable.classList.toggle("sheet-data", sheetKey === "DATA");
 
     let validColIndexes = data.headers.map((_, i) => i);
     let rowsToRender = data.rows;
 
-// KHUSUS SHEET ACARA: SEMBUNYIKAN KOLOM EVENT ID
-if (sheetKey === "ACARA") {
-  const hiddenHeaderNames = ["EVENT ID"];
+    // KHUSUS SHEET ACARA: SEMBUNYIKAN KOLOM EVENT ID
+    if (sheetKey === "ACARA") {
+      const hiddenHeaderNames = ["EVENT ID"];
 
-  validColIndexes = validColIndexes.filter(index => {
-    const headerName = String(data.headers[index] || "")
-      .trim()
-      .toUpperCase();
+      validColIndexes = validColIndexes.filter(index => {
+        const headerName = String(data.headers[index] || "")
+          .trim()
+          .toUpperCase();
 
-    return !hiddenHeaderNames.includes(headerName);
-  });
-}
+        return !hiddenHeaderNames.includes(headerName);
+      });
+    }
+
+    // KHUSUS SHEET DATA: SEMBUNYIKAN KOLOM PIN_HASH DAN JABATAN
+    if (sheetKey === "DATA") {
+      const hiddenHeaderNames = ["PIN_HASH", "JABATAN"];
+
+      validColIndexes = validColIndexes.filter(index => {
+        const headerName = String(data.headers[index] || "")
+          .trim()
+          .toUpperCase();
+
+        return !hiddenHeaderNames.includes(headerName);
+      });
+    }
+
 
     if (sheetKey === "REKAP") {
       const hiddenHeaderNames = ["ID_INTERNAL", "CATATAN_RAHASIA"];
